@@ -638,18 +638,25 @@ export default function App() {
       />
 
       {/* High-Resolution Page Viewer Modal */}
-      <PageViewerModal
-        page={viewingPage}
-        pages={viewingPagesList}
-        currentIndex={viewingPageIndex}
-        onClose={() => setIsPageViewerOpen(false)}
-        onNavigate={handleNavigatePageViewer}
-        onUpdatePage={handleUpdatePage}
-        onReCrop={(page) => {
-          setIsPageViewerOpen(false);
-          handleOpenScanner(page.subjectId, page.chapterId);
-        }}
-      />
+      {isPageViewerOpen && viewingPage && (
+        <PageViewerModal
+          isOpen={isPageViewerOpen}
+          page={viewingPage}
+          pages={viewingPagesList}
+          currentIndex={viewingPageIndex}
+          onClose={() => {
+            setIsPageViewerOpen(false);
+            setViewingPage(null);
+          }}
+          onNavigate={handleNavigatePageViewer}
+          onUpdatePage={handleUpdatePage}
+          onReCrop={(page) => {
+            setIsPageViewerOpen(false);
+            setViewingPage(null);
+            handleOpenScanner(page.subjectId, page.chapterId);
+          }}
+        />
+      )}
 
       {/* PDF Generation Customizer Modal */}
       <PdfExportModal

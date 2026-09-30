@@ -26,9 +26,24 @@ export default function SearchModal({
     return searchNotesIndex(query, subjects, chapters, pages);
   }, [query, subjects, chapters, pages]);
 
+  // ESC key to close
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-16 sm:pt-20 bg-slate-950/80 backdrop-blur-md overflow-hidden text-white animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-16 sm:pt-20 bg-slate-950/80 backdrop-blur-md overflow-hidden text-white animate-in fade-in duration-200 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col max-h-[80vh] overflow-hidden cursor-default"
+      >
         {/* Search Input Bar */}
         <div className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-900/90">
           <Search className="w-5 h-5 text-blue-400 shrink-0" />
@@ -42,6 +57,7 @@ export default function SearchModal({
           />
           {query && (
             <button
+              type="button"
               onClick={() => setQuery('')}
               className="text-xs text-slate-500 hover:text-slate-300"
             >
@@ -49,8 +65,14 @@ export default function SearchModal({
             </button>
           )}
           <button
-            onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 ml-1"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 ml-1 cursor-pointer transition-colors"
+            title="बंद करें (Esc)"
           >
             <X className="w-5 h-5" />
           </button>

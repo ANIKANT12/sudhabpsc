@@ -18,15 +18,16 @@ import { rotateCanvas, loadImage } from '../utils/imageProcessor';
 import { recognizeText } from '../services/ocrService';
 
 export default function PageViewerModal({
+  isOpen = true,
   page,
-  pages,
+  pages = [],
   currentIndex,
   onClose,
   onNavigate,
   onUpdatePage,
   onReCrop,
 }) {
-  if (!page) return null;
+  if (!isOpen || !page) return null;
 
   const [viewMode, setViewMode] = useState('processed'); // 'processed' | 'original'
   const [copiedOcr, setCopiedOcr] = useState(false);
@@ -34,6 +35,7 @@ export default function PageViewerModal({
   const [bookmarkNote, setBookmarkNote] = useState(page?.bookmarkNote || '');
   const [isEditingOcr, setIsEditingOcr] = useState(false);
   const [isOcrRunning, setIsOcrRunning] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Synchronize state whenever page changes
   useEffect(() => {
@@ -46,6 +48,21 @@ export default function PageViewerModal({
 
   const totalPages = pages.length;
 
+  // Keyboard navigation and ESC to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+        onNavigate(currentIndex - 1);
+      } else if (e.key === 'ArrowRight' && currentIndex < totalPages - 1) {
+        onNavigate(currentIndex + 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, totalPages, onClose, onNavigate]);
+
   const handleCopyOcr = () => {
     if (!ocrText) return;
     navigator.clipboard.writeText(ocrText);
@@ -55,6 +72,8 @@ export default function PageViewerModal({
 
   const handleSaveOcrText = () => {
     onUpdatePage(page.id, { ocrText, bookmarkNote });
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
     setIsEditingOcr(false);
   };
 
@@ -98,8 +117,14 @@ export default function PageViewerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md overflow-hidden text-white animate-in fade-in duration-200">
-      <div className="w-full max-w-5xl h-[92vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md overflow-hidden text-white animate-in fade-in duration-200 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-5xl h-[92vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden cursor-default"
+      >
         {/* Top Header */}
         <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
           <div className="flex items-center gap-3">
@@ -110,6 +135,7 @@ export default function PageViewerModal({
             {/* Toggle Processed vs Original */}
             <div className="flex items-center bg-slate-800 rounded-xl p-0.5 border border-slate-700 text-xs">
               <button
+                type="button"
                 onClick={() => setViewMode('processed')}
                 className={`px-3 py-1 rounded-lg font-medium transition-colors ${
                   viewMode === 'processed'
@@ -120,6 +146,7 @@ export default function PageViewerModal({
                 स्कैन किया हुआ पृष्ठ
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('original')}
                 className={`px-3 py-1 rounded-lg font-medium transition-colors ${
                   viewMode === 'original'
@@ -135,6 +162,7 @@ export default function PageViewerModal({
           {/* Quick Toolbar */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
+              type="button"
               onClick={() =>
                 onUpdatePage(page.id, { isStarred: !page.isStarred })
               }
@@ -149,6 +177,7 @@ export default function PageViewerModal({
             </button>
 
             <button
+              type="button"
               onClick={() =>
                 onUpdatePage(page.id, { isBookmarked: !page.isBookmarked })
               }
@@ -163,6 +192,7 @@ export default function PageViewerModal({
             </button>
 
             <button
+              type="button"
               onClick={handleRotate}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               title="90 डिग्री घुमाएं"
@@ -171,10 +201,17 @@ export default function PageViewerModal({
             </button>
 
             <button
-              onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ml-2"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ml-2 cursor-pointer active:scale-95"
+              title="बंद करें (Esc)"
+              aria-label="बंद करें"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-slate-300 hover:text-white" />
             </button>
           </div>
         </div>
@@ -300,10 +337,22 @@ export default function PageViewerModal({
               </span>
 
               <button
+                type="button"
                 onClick={handleSaveOcrText}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow transition-colors"
+                className={`px-4 py-1.5 font-semibold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 ${
+                  isSaved
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-blue-600 hover:bg-blue-500 text-white active:scale-95'
+                }`}
               >
-                परिवर्तन सहेजें
+                {isSaved ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>सहेजा गया!</span>
+                  </>
+                ) : (
+                  <span>परिवर्तन सहेजें</span>
+                )}
               </button>
             </div>
           </div>

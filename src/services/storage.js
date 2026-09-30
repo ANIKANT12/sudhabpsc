@@ -309,6 +309,29 @@ export const deleteChapter = async (chapterId) => {
   return updated;
 };
 
+// AI Study Notes Operations
+export const getChapterAiNotes = async (chapterId) => {
+  const chapters = (await dbGet(CHAPTERS_KEY)) || [];
+  const target = chapters.find((c) => c.id === chapterId);
+  return target?.aiStudyNotes || null;
+};
+
+export const saveChapterAiNotes = async (chapterId, notesData) => {
+  const chapters = (await dbGet(CHAPTERS_KEY)) || [];
+  const index = chapters.findIndex((c) => c.id === chapterId);
+  if (index >= 0) {
+    chapters[index] = {
+      ...chapters[index],
+      aiStudyNotes: notesData,
+      updatedAt: new Date().toISOString(),
+    };
+    await dbSet(CHAPTERS_KEY, chapters);
+    return chapters[index];
+  }
+  return null;
+};
+
+
 // Page Operations
 export const getPages = async (chapterId = null, includeDeleted = false) => {
   const pages = (await dbGet(PAGES_KEY)) || [];

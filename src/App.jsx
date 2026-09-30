@@ -31,6 +31,7 @@ import {
   saveSettings,
   deleteChapter,
   deleteSubject,
+  saveChapterAiNotes,
 } from './services/storage';
 
 import { downloadSubjectPDF, downloadAllNotesZip } from './utils/pdfGenerator';
@@ -353,6 +354,25 @@ export default function App() {
     }
   };
 
+  const handleSaveChapterAiNotes = async (chapterId, notesData) => {
+    const updatedChapter = await saveChapterAiNotes(chapterId, notesData);
+    if (updatedChapter) {
+      setChapters((prev) =>
+        prev.map((c) => (c.id === chapterId ? updatedChapter : c))
+      );
+      if (selectedChapter?.id === chapterId) {
+        setSelectedChapter(updatedChapter);
+      }
+      if (settings?.autoCloudSync !== false) {
+        const updatedChaps = chapters.map((c) =>
+          c.id === chapterId ? updatedChapter : c
+        );
+        pushMetadataToCloud(subjects, updatedChaps, settings?.syncCode);
+      }
+    }
+  };
+
+
   const handleDeleteSubject = async (subjectId) => {
     const updatedSubjs = await deleteSubject(subjectId);
     setSubjects(updatedSubjs);
@@ -550,6 +570,7 @@ export default function App() {
             onDeletePage={handleDeletePage}
             onReorderPages={handleReorderPages}
             onDeleteChapter={handleDeleteChapter}
+            onSaveChapterAiNotes={handleSaveChapterAiNotes}
           />
         )}
 
@@ -665,6 +686,8 @@ export default function App() {
         chapter={pdfChapter}
         subject={pdfSubject}
         pages={pdfPages}
+        aiNotes={pdfChapter?.aiStudyNotes}
+        onSaveAiNotes={handleSaveChapterAiNotes}
       />
 
       {/* AI BPSC Assistant Modal */}

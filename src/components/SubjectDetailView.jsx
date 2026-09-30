@@ -196,9 +196,17 @@ export default function SubjectDetailView({
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
-                        अध्याय {chap.chapterNo || 1}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                          अध्याय {chap.chapterNo || 1}
+                        </span>
+                        {chap.aiStudyNotes && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-600/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-purple-400" />
+                            <span>AI पुस्तक तैयार</span>
+                          </span>
+                        )}
+                      </div>
                       <h4 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors mt-2">
                         {chap.hindiTitle || chap.title}
                       </h4>

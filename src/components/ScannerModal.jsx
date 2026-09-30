@@ -78,6 +78,7 @@ export default function ScannerModal({
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   // Available chapters for the selected subject
   const availableChapters = chapters.filter(
@@ -100,9 +101,25 @@ export default function ScannerModal({
     };
   }, []);
 
+  // Ensure video element receives stream when mounted
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current
+        .play()
+        .catch((e) => console.warn('Video playback note:', e));
+    }
+  }, [cameraActive]);
+
   const startCamera = async () => {
     try {
       stopCamera();
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        // Browser lacks getUserMedia - fallback to native camera input
+        cameraInputRef.current?.click();
+        return;
+      }
+
       const constraints = {
         video: {
           facingMode: cameraFacing,
@@ -113,15 +130,11 @@ export default function ScannerModal({
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
       setCameraActive(true);
     } catch (err) {
-      console.warn('Camera access denied or unavailable, fallback to file upload:', err);
-      alert('Camera access could not be started. You can choose photos from your Gallery/Files.');
-      setCameraActive(false);
+      console.warn('getUserMedia error, opening native camera app instead:', err);
+      // Fallback: Open phone camera directly
+      cameraInputRef.current?.click();
     }
   };
 
@@ -683,41 +696,67 @@ export default function ScannerModal({
                 </div>
               ) : (
                 /* Capture Options Screen */
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-                  {/* Take Photo Card */}
+                <div className="space-y-4 py-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Primary Button: Take Photo using Native Phone Camera */}
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="p-6 sm:p-7 rounded-2xl bg-gradient-to-b from-blue-600/30 to-blue-900/20 border-2 border-blue-500 hover:border-blue-400 flex flex-col items-center justify-center gap-3 text-center group transition-all active:scale-95 shadow-xl shadow-blue-500/10"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/40 group-hover:scale-110 transition-transform">
+                        <Camera className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-base flex items-center justify-center gap-1.5">
+                          <span>Open Phone Camera</span>
+                          <span className="text-[10px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-extrabold">Instant</span>
+                        </h3>
+                        <p className="text-xs text-blue-200 mt-1">
+                          Takes full HD photo directly with phone camera & auto-focus
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Choose from Gallery / Files */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-6 sm:p-7 rounded-2xl bg-gradient-to-b from-slate-800 to-slate-800/40 border-2 border-slate-700 hover:border-slate-500 flex flex-col items-center justify-center gap-3 text-center group transition-all active:scale-95"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-slate-700 text-slate-200 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <Upload className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-base">Choose from Gallery</h3>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Upload saved note photos from gallery or files
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Alternative: In-Browser Live Viewfinder */}
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="p-8 rounded-2xl bg-gradient-to-b from-blue-600/20 to-blue-900/20 border-2 border-dashed border-blue-500/40 hover:border-blue-400 flex flex-col items-center justify-center gap-3 text-center group transition-all hover:scale-[1.01]"
+                    className="w-full py-3 px-4 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-2 transition-colors"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30 group-hover:scale-110 transition-transform">
-                      <Camera className="w-7 h-7" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-base">Take Photo with Camera</h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Photograph your handwritten notes page. Rear camera with live scanner guide.
-                      </p>
-                    </div>
+                    <RefreshCw className="w-4 h-4 text-blue-400" />
+                    <span>Or Launch Live In-Browser Viewfinder (with Laser Grid)</span>
                   </button>
 
-                  {/* Choose from Gallery / Files */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-8 rounded-2xl bg-gradient-to-b from-slate-800 to-slate-800/40 border-2 border-dashed border-slate-700 hover:border-slate-500 flex flex-col items-center justify-center gap-3 text-center group transition-all hover:scale-[1.01]"
-                  >
-                    <div className="w-14 h-14 rounded-2xl bg-slate-700 text-slate-200 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <Upload className="w-7 h-7" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-base">Choose from Gallery / Files</h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Upload JPEG, PNG, or WebP note photos from your phone or PC.
-                      </p>
-                    </div>
-                  </button>
+                  {/* Native Phone Camera Input (opens camera directly on Android & iOS) */}
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
 
+                  {/* Gallery Input */}
                   <input
                     ref={fileInputRef}
                     type="file"

@@ -13,6 +13,7 @@ import RecycleBinModal from './components/RecycleBinModal';
 import SettingsModal from './components/SettingsModal';
 import StarredNotesView from './components/StarredNotesView';
 import PinLockScreen from './components/PinLockScreen';
+import InstallAppBanner from './components/InstallAppBanner';
 
 import {
   initStorage,
@@ -306,6 +307,9 @@ export default function App() {
         starredCount={starredCount}
         bookmarkedCount={bookmarkedCount}
       />
+
+      {/* PWA Install Banner */}
+      <InstallAppBanner />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 sm:pb-12">

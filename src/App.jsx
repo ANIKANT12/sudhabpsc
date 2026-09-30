@@ -125,12 +125,15 @@ export default function App() {
   };
 
   const handleSaveScannedPage = async (pageData, { newSubjectTitle, newChapterTitle }) => {
-    let finalSubjectId = pageData.subjectId;
+    let finalSubjectId = pageData.subjectId || subjects[0]?.id || 'subj-history';
     let finalChapterId = pageData.chapterId;
+
+    let targetSubjObj = subjects.find((s) => s.id === finalSubjectId);
+    let targetChapObj = chapters.find((c) => c.id === finalChapterId);
 
     // Handle dynamically created subject
     if (newSubjectTitle) {
-      const newSubj = {
+      targetSubjObj = {
         id: finalSubjectId,
         title: newSubjectTitle,
         hindiTitle: newSubjectTitle,
@@ -139,32 +142,38 @@ export default function App() {
         badgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
         description: 'Custom BPSC study notebook',
       };
-      await saveSubject(newSubj);
-      setSubjects((prev) => [...prev, newSubj]);
+      await saveSubject(targetSubjObj);
+      setSubjects((prev) => [...prev.filter((s) => s.id !== targetSubjObj.id), targetSubjObj]);
     }
 
-    // Handle dynamically created chapter
-    if (newChapterTitle) {
+    // Handle dynamically created or missing chapter
+    if (newChapterTitle || !targetChapObj) {
       const existingChaps = chapters.filter((c) => c.subjectId === finalSubjectId);
-      const newChap = {
-        id: finalChapterId,
+      targetChapObj = {
+        id: finalChapterId || `chap-${Date.now()}`,
         subjectId: finalSubjectId,
         chapterNo: existingChaps.length + 1,
-        title: newChapterTitle,
+        title: newChapterTitle || 'Chapter 1: Scanned Notes',
         tags: ['BPSC', 'Handwritten Notes'],
         description: '',
       };
-      await saveChapter(newChap);
-      setChapters((prev) => [...prev, newChap]);
+      finalChapterId = targetChapObj.id;
+      await saveChapter(targetChapObj);
+      setChapters((prev) => [...prev.filter((c) => c.id !== targetChapObj.id), targetChapObj]);
     }
 
-    // Save Page
+    // Save Page to IndexedDB
     const updatedPages = await savePage({
       ...pageData,
       subjectId: finalSubjectId,
       chapterId: finalChapterId,
     });
     setPages(updatedPages);
+
+    // Immediately open the Chapter Review screen!
+    if (targetSubjObj) setSelectedSubject(targetSubjObj);
+    if (targetChapObj) setSelectedChapter(targetChapObj);
+    setActiveTab('chapter');
   };
 
   const handleNavigateToChapter = (chapterId) => {

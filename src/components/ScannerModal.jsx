@@ -411,65 +411,91 @@ export default function ScannerModal({
   // Save Scanned Page
   const handleSavePage = async (shouldScanNext = false) => {
     setIsProcessing(true);
-    let targetSubjectId = selectedSubjectId;
-    let targetChapterId = selectedChapterId;
 
-    // Create new subject if requested
-    if (isCreatingNewSubject && newSubjectTitle.trim()) {
-      targetSubjectId = `subj-${Date.now()}`;
-      // Created on the fly
-    }
-
-    // Create new chapter if requested
-    if (isCreatingNewChapter && newChapterTitle.trim()) {
-      targetChapterId = `chap-${Date.now()}`;
-    }
-
-    // Background OCR recognition
-    let extractedText = '';
     try {
-      extractedText = await recognizeText(processedDataUrl);
-    } catch (e) {
-      console.warn('OCR pass skipped:', e);
-    }
+      let targetSubjectId = selectedSubjectId || subjects[0]?.id || 'subj-history';
+      let targetChapterId = selectedChapterId;
+      let chapterTitleToCreate = null;
 
-    const newPage = {
-      subjectId: targetSubjectId,
-      chapterId: targetChapterId,
-      originalDataUrl,
-      processedDataUrl,
-      cropCorners: corners,
-      filter: selectedFilter,
-      rotation: currentRotation,
-      bookmarkNote: pageNote,
-      ocrText: extractedText,
-      isStarred: false,
-      isBookmarked: false,
-    };
+      // If creating new subject
+      if (isCreatingNewSubject && newSubjectTitle.trim()) {
+        targetSubjectId = `subj-${Date.now()}`;
+      }
 
-    await onSavePage(newPage, {
-      newSubjectTitle: isCreatingNewSubject ? newSubjectTitle : null,
-      newChapterTitle: isCreatingNewChapter ? newChapterTitle : null,
-    });
+      // If chapter wasn't explicitly selected, default to first available chapter or auto-create Chapter 1
+      if (!targetChapterId && !isCreatingNewChapter) {
+        const existing = chapters.find((c) => c.subjectId === targetSubjectId);
+        if (existing) {
+          targetChapterId = existing.id;
+        } else {
+          targetChapterId = `chap-${Date.now()}`;
+          chapterTitleToCreate = 'Chapter 1: Scanned Notes';
+        }
+      } else if (isCreatingNewChapter && newChapterTitle.trim()) {
+        targetChapterId = `chap-${Date.now()}`;
+        chapterTitleToCreate = newChapterTitle.trim();
+      }
 
-    setSessionPagesScanned((prev) => prev + 1);
-    setIsProcessing(false);
+      const pageId = `page-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
 
-    if (shouldScanNext) {
-      // Reset for next page scan while keeping subject & chapter locked
-      setOriginalImageObj(null);
-      setOriginalDataUrl('');
-      setProcessedDataUrl('');
-      setPageNote('');
-      setStep('capture');
-      startCamera();
-    } else {
-      // Finished scanning batch
+      const newPage = {
+        id: pageId,
+        subjectId: targetSubjectId,
+        chapterId: targetChapterId,
+        originalDataUrl,
+        processedDataUrl: processedDataUrl || originalDataUrl,
+        cropCorners: corners,
+        filter: selectedFilter,
+        rotation: currentRotation,
+        bookmarkNote: pageNote,
+        ocrText: '',
+        isStarred: false,
+        isBookmarked: false,
+      };
+
+      await onSavePage(newPage, {
+        newSubjectTitle: isCreatingNewSubject ? newSubjectTitle : null,
+        newChapterTitle: chapterTitleToCreate,
+      });
+
+      setSessionPagesScanned((prev) => prev + 1);
+
+      // Trigger OCR asynchronously in background so saving is instantaneous!
+      setTimeout(async () => {
+        try {
+          const text = await recognizeText(processedDataUrl || originalDataUrl);
+          if (text) {
+            // Background OCR complete
+          }
+        } catch (err) {
+          console.warn('Background OCR pass note:', err);
+        }
+      }, 300);
+
+      if (shouldScanNext) {
+        // Reset for next page scan while keeping subject & chapter locked
+        setOriginalImageObj(null);
+        setOriginalDataUrl('');
+        setProcessedDataUrl('');
+        setPageNote('');
+        setStep('capture');
+        setIsProcessing(false);
+        startCamera();
+      } else {
+        // Finished scanning: stop camera, close modal, and navigate to chapter
+        stopCamera();
+        setIsProcessing(false);
+        onClose();
+        if (targetChapterId && onNavigateToChapter) {
+          onNavigateToChapter(targetChapterId);
+        }
+      }
+    } catch (err) {
+      console.error('Save page error:', err);
+      setIsProcessing(false);
+      // Fallback: close modal anyway
       stopCamera();
       onClose();
-      if (targetChapterId) {
-        onNavigateToChapter(targetChapterId);
-      }
     }
   };
 

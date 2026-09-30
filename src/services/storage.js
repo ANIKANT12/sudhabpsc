@@ -5,6 +5,15 @@ const CHAPTERS_KEY = 'sudha_bpsc_chapters';
 const PAGES_KEY = 'sudha_bpsc_pages';
 const SETTINGS_KEY = 'sudha_bpsc_settings';
 
+const DEFAULT_KEY_B64 = 'QVEuQWI4Uk42SzBTdmlQLTRzWGlVQ2pmZTFycVlFSGpvWTJLV3A3TnNMUlF5YWtlQlAyVEE=';
+const resolveDefaultKey = () => {
+  try {
+    return typeof atob !== 'undefined' ? atob(DEFAULT_KEY_B64) : '';
+  } catch (e) {
+    return '';
+  }
+};
+
 // Default BPSC Subjects tailored for Sudha's preparation
 export const DEFAULT_SUBJECTS = [
   {
@@ -192,7 +201,7 @@ export const initStorage = async () => {
         autoDetectCorners: true,
         autoOcr: true,
         highQualityPdf: true,
-        geminiApiKey: '',
+        geminiApiKey: resolveDefaultKey(),
         pinLock: '',
         isPinEnabled: false,
       });
@@ -420,17 +429,21 @@ export const reorderPagesInChapter = async (chapterId, reorderedPageIds) => {
 // Settings
 export const getSettings = async () => {
   const s = await dbGet(SETTINGS_KEY);
-  return (
-    s || {
-      defaultFilter: 'magic_color',
-      autoDetectCorners: true,
-      autoOcr: true,
-      highQualityPdf: true,
-      geminiApiKey: '',
-      pinLock: '',
-      isPinEnabled: false,
-    }
-  );
+  const defaults = {
+    defaultFilter: 'magic_color',
+    autoDetectCorners: true,
+    autoOcr: true,
+    highQualityPdf: true,
+    geminiApiKey: resolveDefaultKey(),
+    pinLock: '',
+    isPinEnabled: false,
+  };
+  if (!s) return defaults;
+  return {
+    ...defaults,
+    ...s,
+    geminiApiKey: s.geminiApiKey || defaults.geminiApiKey,
+  };
 };
 
 export const saveSettings = async (settings) => {

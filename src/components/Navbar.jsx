@@ -42,14 +42,14 @@ export default function Navbar({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                Sudha <span className="text-amber-400 font-extrabold">BPSC</span> Notes
+                सुधा <span className="text-amber-400 font-extrabold">BPSC</span> नोट्स
               </h1>
               <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full">
-                70th/71st
+                70वीं/71वीं BPSC
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
-              CamScanner • Digital Notebook • PDF Generator
+              हस्तलिखित नोट्स • डिजिटल स्कैनर • PDF जनरेटर
             </p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function Navbar({
           >
             <span className="flex items-center gap-2 text-slate-400">
               <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" />
-              <span>Search notes, subjects, handwritten OCR...</span>
+              <span>नोट्स, विषय, हस्तलिखित टेक्स्ट खोजें...</span>
             </span>
             <kbd className="text-[11px] font-mono bg-slate-700/60 border border-slate-600 px-1.5 py-0.5 rounded text-slate-400">
               Ctrl+K
@@ -76,7 +76,7 @@ export default function Navbar({
           <button
             onClick={onOpenSearch}
             className="md:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Search Notes"
+            title="नोट्स खोजें"
           >
             <Search className="w-5 h-5" />
           </button>
@@ -89,7 +89,7 @@ export default function Navbar({
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
-            title="High Yield / Starred Notes"
+            title="महत्वपूर्ण नोट्स (Starred)"
           >
             <Star className="w-5 h-5 fill-current" />
             {starredCount > 0 && (
@@ -107,7 +107,7 @@ export default function Navbar({
                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
-            title="Bookmarked Notes"
+            title="बुकमार्क किए गए पृष्ठ"
           >
             <Bookmark className="w-5 h-5" />
             {bookmarkedCount > 0 && (
@@ -121,7 +121,7 @@ export default function Navbar({
           <button
             onClick={onOpenAllDownloads}
             className="hidden sm:flex p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Download Notes / ZIP"
+            title="सभी PDF डाउनलोड करें (ZIP)"
           >
             <Download className="w-5 h-5" />
           </button>
@@ -130,7 +130,7 @@ export default function Navbar({
           <button
             onClick={onOpenRecycleBin}
             className="hidden sm:flex p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Recycle Bin"
+            title="रीसायकल बिन"
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -148,12 +148,12 @@ export default function Navbar({
               }`}
               title={
                 syncState?.status === 'syncing'
-                  ? 'Syncing with Neon Cloud...'
+                  ? 'क्लाउड से नोट्स सिंक हो रहे हैं...'
                   : syncState?.status === 'error'
-                  ? `Sync error: ${syncState?.error || 'Failed'}. Tap to retry.`
+                  ? `सिंक त्रुटि: ${syncState?.error || 'विफल'}. पुनः प्रयास करने के लिए टैप करें.`
                   : syncState?.lastSyncedAt
-                  ? `Neon Cloud Synced • Click to sync now`
-                  : 'Cloud Sync • Click to sync notes between phone & computer'
+                  ? `क्लाउड सिंक सुरक्षित • अभी सिंक करने के लिए क्लिक करें`
+                  : 'क्लाउड सिंक • फोन और कंप्यूटर के बीच नोट्स सिंक करें'
               }
             >
               {syncState?.status === 'syncing' ? (
@@ -164,7 +164,7 @@ export default function Navbar({
                 <CloudCheck className="w-5 h-5 text-emerald-400" />
               )}
               <span className="hidden xl:inline text-xs font-medium text-slate-300">
-                {syncState?.status === 'syncing' ? 'Syncing...' : 'Cloud Synced'}
+                {syncState?.status === 'syncing' ? 'सिंक हो रहा है...' : 'क्लाउड सिंक'}
               </span>
             </button>
           )}
@@ -173,7 +173,7 @@ export default function Navbar({
           <button
             onClick={onOpenSettings}
             className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Settings & Backup"
+            title="सेटिंग्स एवं बैकअप"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -184,8 +184,8 @@ export default function Navbar({
             className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
           >
             <Camera className="w-4 h-4 sm:w-4 sm:h-4 text-blue-200" />
-            <span className="hidden xs:inline">Upload Notes</span>
-            <span className="xs:hidden">Scan</span>
+            <span className="hidden xs:inline">नोट्स अपलोड करें</span>
+            <span className="xs:hidden">स्कैन</span>
           </button>
         </div>
       </div>

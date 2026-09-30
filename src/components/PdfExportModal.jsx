@@ -29,7 +29,7 @@ export default function PdfExportModal({
 
   const handleDownload = async () => {
     setIsGenerating(true);
-    setStatusMessage('Compiling scanned note pages...');
+    setStatusMessage('स्कैन किए गए नोट्स संकलित किए जा रहे हैं...');
 
     try {
       await downloadChapterPDF(chapter, subject, pages, {
@@ -39,7 +39,7 @@ export default function PdfExportModal({
         quality: 0.92,
       });
 
-      setStatusMessage('PDF Ready! Downloading...');
+      setStatusMessage('PDF तैयार है! डाउनलोड हो रहा है...');
       confetti({
         particleCount: 50,
         spread: 60,
@@ -52,7 +52,7 @@ export default function PdfExportModal({
       }, 1200);
     } catch (err) {
       console.error('PDF error:', err);
-      alert('Error creating PDF. Please try again.');
+      alert('PDF बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।');
       setIsGenerating(false);
     }
   };
@@ -67,10 +67,10 @@ export default function PdfExportModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-white">
-                Download Chapter PDF
+                अध्याय PDF डाउनलोड करें
               </h3>
               <p className="text-xs text-slate-400">
-                {pages.length} Pages • {chapter.title}
+                {pages.length} पृष्ठ • {chapter.hindiTitle || chapter.title}
               </p>
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function PdfExportModal({
         {/* Options */}
         <div className="space-y-3 py-2">
           <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-            PDF Formatting Options
+            PDF फॉर्मेटिंग विकल्प
           </label>
 
           {/* Add Page Numbers */}
@@ -96,10 +96,10 @@ export default function PdfExportModal({
           >
             <div>
               <div className="text-xs font-semibold text-white">
-                Add Page Numbers
+                पृष्ठ संख्या (Page Numbers) जोड़ें
               </div>
               <div className="text-[11px] text-slate-400">
-                Shows "Page X of Y" at the bottom center of every note
+                प्रत्येक पृष्ठ के नीचे "पृष्ठ X / Y" प्रदर्शित करेगा
               </div>
             </div>
             {addPageNumbers ? (
@@ -116,10 +116,10 @@ export default function PdfExportModal({
           >
             <div>
               <div className="text-xs font-semibold text-white">
-                Subject & Chapter Header
+                विषय एवं अध्याय हेडर
               </div>
               <div className="text-[11px] text-slate-400">
-                Adds elegant top header with subject title and chapter name
+                पृष्ठ के ऊपर सुंदर विषय एवं अध्याय का शीर्षक जोड़ेगा
               </div>
             </div>
             {addHeader ? (
@@ -136,10 +136,10 @@ export default function PdfExportModal({
           >
             <div>
               <div className="text-xs font-semibold text-white">
-                Sudha BPSC Watermark
+                सुधा BPSC वाटरमार्क
               </div>
               <div className="text-[11px] text-slate-400">
-                Subtle personal watermark across the background
+                पृष्ठभूमि में हल्का व्यक्तिगत वाटरमार्क
               </div>
             </div>
             {addWatermark ? (
@@ -165,7 +165,7 @@ export default function PdfExportModal({
             onClick={onClose}
             className="px-4 py-2 text-xs text-slate-400 hover:text-white"
           >
-            Cancel
+            रद्द करें
           </button>
 
           <button
@@ -175,7 +175,7 @@ export default function PdfExportModal({
             className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
-            <span>Generate & Download</span>
+            <span>PDF बनाएं व डाउनलोड करें</span>
           </button>
         </div>
       </div>

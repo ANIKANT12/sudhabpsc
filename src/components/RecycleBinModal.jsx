@@ -21,10 +21,9 @@ export default function RecycleBinModal({
               <Trash2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Recycle Bin</h3>
+              <h3 className="text-base font-bold text-white">रीसायकल बिन (हटाए गए पृष्ठ)</h3>
               <p className="text-xs text-slate-400">
-                {deletedPages.length}{' '}
-                {deletedPages.length === 1 ? 'Deleted Page' : 'Deleted Pages'}
+                {deletedPages.length} हटाए गए पृष्ठ
               </p>
             </div>
           </div>
@@ -42,10 +41,10 @@ export default function RecycleBinModal({
             <div className="py-12 text-center text-slate-500 space-y-2">
               <Trash2 className="w-10 h-10 mx-auto text-slate-700" />
               <p className="text-sm font-semibold text-slate-400">
-                Recycle Bin is Empty
+                रीसायकल बिन खाली है
               </p>
               <p className="text-xs text-slate-500">
-                Accidentally deleted pages can be restored here anytime.
+                गलती से हटाए गए पृष्ठों को यहाँ से कभी भी पुनर्प्राप्त (Restore) किया जा सकता है।
               </p>
             </div>
           ) : (
@@ -68,31 +67,31 @@ export default function RecycleBinModal({
                     </div>
 
                     <div className="text-[11px] text-slate-400 truncate">
-                      {chap?.title || 'Unknown Chapter'}
+                      {chap?.hindiTitle || chap?.title || 'अध्याय'}
                     </div>
 
                     <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-800">
                       <button
                         onClick={() => onRestorePage(page.id)}
                         className="flex-1 py-1 px-2 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
-                        title="Restore page"
+                        title="पृष्ठ वापस लाएं"
                       >
                         <RotateCcw className="w-3 h-3" />
-                        <span>Restore</span>
+                        <span>वापस लाएं</span>
                       </button>
 
                       <button
                         onClick={() => {
                           if (
                             confirm(
-                              'Permanently delete this page? This cannot be undone.'
+                              'क्या आप इस पृष्ठ को स्थायी रूप से हटाना चाहते हैं? इसे वापस नहीं लाया जा सकेगा।'
                             )
                           ) {
                             onPermanentDeletePage(page.id);
                           }
                         }}
                         className="p-1 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
-                        title="Delete permanently"
+                        title="स्थायी रूप से हटाएं"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

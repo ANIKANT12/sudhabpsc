@@ -12,7 +12,7 @@ export default function BottomNav({ activeTab, setActiveTab, onOpenScanner }) {
           }`}
         >
           <Home className="w-5 h-5 mb-1" />
-          <span className="text-[10px]">Home</span>
+          <span className="text-[10px]">होम</span>
         </button>
 
         <button
@@ -22,7 +22,7 @@ export default function BottomNav({ activeTab, setActiveTab, onOpenScanner }) {
           }`}
         >
           <BookOpen className="w-5 h-5 mb-1" />
-          <span className="text-[10px]">Subjects</span>
+          <span className="text-[10px]">विषय</span>
         </button>
 
         {/* Center Scanner Button */}
@@ -30,6 +30,7 @@ export default function BottomNav({ activeTab, setActiveTab, onOpenScanner }) {
           <button
             onClick={() => onOpenScanner()}
             className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-500 p-0.5 shadow-xl shadow-blue-600/40 active:scale-95 transition-transform"
+            title="नोट्स स्कैन करें"
           >
             <div className="w-full h-full bg-blue-600 rounded-full flex flex-col items-center justify-center text-white">
               <Camera className="w-6 h-6" />
@@ -44,7 +45,7 @@ export default function BottomNav({ activeTab, setActiveTab, onOpenScanner }) {
           }`}
         >
           <Star className="w-5 h-5 mb-1" />
-          <span className="text-[10px]">Starred</span>
+          <span className="text-[10px]">महत्वपूर्ण</span>
         </button>
 
         <button
@@ -54,7 +55,7 @@ export default function BottomNav({ activeTab, setActiveTab, onOpenScanner }) {
           }`}
         >
           <Sparkles className="w-5 h-5 mb-1" />
-          <span className="text-[10px]">AI Study</span>
+          <span className="text-[10px]">AI अध्ययन</span>
         </button>
       </div>
     </div>

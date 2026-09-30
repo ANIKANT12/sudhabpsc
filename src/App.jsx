@@ -202,7 +202,7 @@ export default function App() {
         icon: '📘',
         color: 'from-blue-600 to-indigo-800',
         badgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
-        description: 'Custom BPSC study notebook',
+        description: 'कस्टम BPSC अध्ययन नोटबुक',
       };
       await saveSubject(targetSubjObj);
       setSubjects((prev) => [...prev.filter((s) => s.id !== targetSubjObj.id), targetSubjObj]);
@@ -215,8 +215,9 @@ export default function App() {
         id: finalChapterId || `chap-${Date.now()}`,
         subjectId: finalSubjectId,
         chapterNo: existingChaps.length + 1,
-        title: newChapterTitle || 'Chapter 1: Scanned Notes',
-        tags: ['BPSC', 'Handwritten Notes'],
+        title: newChapterTitle || 'अध्याय 1: हस्तलिखित नोट्स',
+        hindiTitle: newChapterTitle || 'अध्याय 1: हस्तलिखित नोट्स',
+        tags: ['BPSC', 'हस्तलिखित नोट्स'],
         description: '',
       };
       finalChapterId = targetChapObj.id;
@@ -406,7 +407,7 @@ export default function App() {
           📚
         </div>
         <p className="text-sm font-semibold tracking-wide text-slate-400">
-          Loading Sudha's BPSC Notes...
+          सुधा के BPSC नोट्स लोड हो रहे हैं...
         </p>
       </div>
     );
@@ -544,11 +545,11 @@ export default function App() {
             <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 border border-purple-500/30 shadow-xl flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-                  <span>🤖 BPSC AI Mentor & Quiz Master</span>
+                  <span>🤖 BPSC AI अध्ययन सहायक एवं टेस्ट मास्टर</span>
                 </h2>
                 <p className="text-xs text-slate-300 mt-1 max-w-xl">
-                  Select any BPSC chapter to generate instant revision summaries, 
-                  practice 20 BPSC-format MCQs, or flip flashcards to test your memory.
+                  किसी भी अध्याय को चुनें — AI सीधे आपके अपलोड किए गए हस्तलिखित नोट्स को पढ़कर त्वरित सारांश, 
+                  BPSC पैटर्न पर 20 MCQs और त्वरित रिविजन फ्लैशकार्ड्स तैयार करेगा।
                 </p>
               </div>
             </div>
@@ -566,16 +567,16 @@ export default function App() {
                     className="p-5 bg-slate-900/90 border border-slate-800 hover:border-purple-500/50 rounded-2xl cursor-pointer group shadow-lg transition-all"
                   >
                     <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider">
-                      {subj?.title}
+                      {subj?.hindiTitle || subj?.title}
                     </div>
                     <h4 className="text-base font-bold text-white group-hover:text-purple-300 mt-1">
-                      {chap.title}
+                      {chap.hindiTitle || chap.title}
                     </h4>
                     <p className="text-xs text-slate-400 mt-2">
-                      {chPages.length} scanned pages available for AI extraction
+                      {chPages.length} स्कैन किए गए पृष्ठ (AI अध्ययन हेतु)
                     </p>
                     <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-purple-400 font-semibold">
-                      <span>Launch AI Prep</span>
+                      <span>AI अध्ययन शुरू करें</span>
                       <span>→</span>
                     </div>
                   </div>

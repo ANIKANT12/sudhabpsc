@@ -37,7 +37,7 @@ export default function SearchModal({
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search notes, chapters, topics, or words inside handwritten pages (e.g. Cornwallis, Champaran)..."
+            placeholder="नोट्स, अध्याय, विषय या हस्तलिखित कॉपियों के शब्द खोजें (उदा. 1857 क्रांति, चंपारण, संविधान)..."
             className="flex-1 bg-transparent border-none text-white text-sm focus:outline-none placeholder-slate-500"
           />
           {query && (
@@ -45,7 +45,7 @@ export default function SearchModal({
               onClick={() => setQuery('')}
               className="text-xs text-slate-500 hover:text-slate-300"
             >
-              Clear
+              हटाएं
             </button>
           )}
           <button
@@ -62,10 +62,10 @@ export default function SearchModal({
             <div className="py-12 text-center text-slate-500 space-y-3">
               <Search className="w-8 h-8 mx-auto text-slate-600" />
               <p className="text-xs">
-                Type any BPSC topic, personality, article, or handwritten phrase to search.
+                खोजने के लिए किसी BPSC विषय, व्यक्तित्व, अनुच्छेद या हस्तलिखित शब्द को लिखें।
               </p>
               <div className="flex flex-wrap justify-center gap-2 pt-2">
-                {['1857', 'Champaran', 'Fundamental Rights', 'Bihar', 'Prelims', 'Mains'].map(
+                {['1857 क्रांति', 'चंपारण सत्याग्रह', 'मौलिक अधिकार', 'बिहार विशेष', 'प्रीलिम्स', 'मेन्स'].map(
                   (tag) => (
                     <button
                       key={tag}
@@ -80,15 +80,15 @@ export default function SearchModal({
             </div>
           ) : searchResults.length === 0 ? (
             <div className="py-12 text-center text-slate-500">
-              <p className="text-sm font-semibold">No notes found for "{query}"</p>
+              <p className="text-sm font-semibold">"{query}" के लिए कोई नोट नहीं मिला</p>
               <p className="text-xs text-slate-400 mt-1">
-                Try searching for a different keyword or ensure OCR text has been scanned.
+                कृपया कोई अन्य शब्द खोजें अथवा सुनिश्चित करें कि पृष्ठ का OCR स्कैन किया गया है।
               </p>
             </div>
           ) : (
             <div className="space-y-2.5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
-                {searchResults.length} {searchResults.length === 1 ? 'Result' : 'Results'} Found
+                {searchResults.length} परिणाम मिले
               </div>
 
               {searchResults.map((item, idx) => (
@@ -115,15 +115,15 @@ export default function SearchModal({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">
-                          {item.chapter?.title}
+                          {item.chapter?.hindiTitle || item.chapter?.title}
                         </span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
-                          Page {item.page.pageNo || 1}
+                          पृष्ठ {item.page.pageNo || 1}
                         </span>
                       </div>
 
                       <div className="text-[11px] text-slate-400 mt-0.5">
-                        {item.subject?.title}
+                        {item.subject?.hindiTitle || item.subject?.title}
                       </div>
 
                       {item.snippet && (

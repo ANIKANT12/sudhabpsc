@@ -22,12 +22,12 @@ export default function StarredNotesView({
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Dashboard</span>
+          <span>वापस डैशबोर्ड पर जाएं</span>
         </button>
 
         <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
           {filteredPages.length}{' '}
-          {isStarredMode ? 'Starred Pages' : 'Bookmarked Pages'}
+          {isStarredMode ? 'महत्वपूर्ण पृष्ठ (स्टार)' : 'बुकमार्क पृष्ठ'}
         </span>
       </div>
 
@@ -48,13 +48,13 @@ export default function StarredNotesView({
         <div>
           <h2 className="text-xl font-extrabold text-white">
             {isStarredMode
-              ? 'High Yield / Starred Revision Notes'
-              : 'Exam Bookmarks'}
+              ? 'अति-महत्वपूर्ण / स्टार रिविजन नोट्स'
+              : 'परीक्षा बुकमार्क्स'}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {isStarredMode
-              ? 'All marked high-yield pages from all BPSC subjects in one place for rapid final revision.'
-              : 'Pages you bookmarked with personal notes for quick recall.'}
+              ? 'अंतिम समय में त्वरित रिविजन हेतु सभी BPSC विषयों के चिह्नित महत्वपूर्ण पृष्ठ एक ही स्थान पर।'
+              : 'त्वरित स्मरण हेतु व्यक्तिगत टिप्पणियों के साथ बुकमार्क किए गए पृष्ठ।'}
           </p>
         </div>
       </div>
@@ -66,10 +66,9 @@ export default function StarredNotesView({
           ) : (
             <Bookmark className="w-10 h-10 text-slate-600 mx-auto" />
           )}
-          <h4 className="text-base font-bold text-white">No pages marked yet</h4>
+          <h4 className="text-base font-bold text-white">अभी तक कोई पृष्ठ चिह्नित नहीं किया गया</h4>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Tap the {isStarredMode ? 'star (★)' : 'bookmark (🔖)'} icon on any scanned note
-            to add it to your quick revision list.
+            त्वरित रिविजन सूची में जोड़ने के लिए किसी भी स्कैन किए गए नोट पर {isStarredMode ? 'स्टार (★)' : 'बुकमार्क (🔖)'} आइकन दबाएं।
           </p>
         </div>
       ) : (
@@ -86,10 +85,10 @@ export default function StarredNotesView({
               >
                 <div className="p-2.5 bg-slate-900/90 border-b border-slate-800/80 flex items-center justify-between z-10">
                   <span className="text-[11px] font-bold text-slate-200 truncate">
-                    {chap?.title || 'Note'}
+                    {chap?.hindiTitle || chap?.title || 'नोट'}
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">
-                    P.{page.pageNo || 1}
+                    पृष्ठ {page.pageNo || 1}
                   </span>
                 </div>
 
@@ -103,16 +102,16 @@ export default function StarredNotesView({
                   <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                     <span className="px-3 py-1 rounded-xl bg-blue-600 text-white text-xs font-semibold flex items-center gap-1">
                       <Eye className="w-3.5 h-3.5" />
-                      <span>View</span>
+                      <span>देखें</span>
                     </span>
                   </div>
                 </div>
 
                 <div className="p-2 bg-slate-900 text-[10px] text-slate-400 border-t border-slate-800 truncate">
-                  {subj?.title || 'BPSC Note'}
+                  {subj?.hindiTitle || subj?.title || 'BPSC नोट'}
                   {page.bookmarkNote && (
                     <div className="text-amber-300 truncate mt-0.5 font-medium">
-                      Note: {page.bookmarkNote}
+                      टिप्पणी: {page.bookmarkNote}
                     </div>
                   )}
                 </div>

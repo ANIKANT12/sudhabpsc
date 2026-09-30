@@ -35,12 +35,17 @@ export default function ChapterView({
 }) {
   const [activePageActionId, setActivePageActionId] = useState(null);
 
+  const subjectTitle = subject?.hindiTitle || subject?.title || 'विषय';
+  const chapterTitle = chapter?.hindiTitle || chapter?.title;
+
   // Move page left
   const movePageLeft = (index) => {
     if (index <= 0) return;
     const newPages = [...pages];
     const temp = newPages[index - 1];
     newPages[index - 1] = newPages[index];
+    newPages[index - 1].pageNo = index;
+    temp.pageNo = index + 1;
     newPages[index] = temp;
     onReorderPages(chapter.id, newPages.map((p) => p.id));
   };
@@ -51,6 +56,8 @@ export default function ChapterView({
     const newPages = [...pages];
     const temp = newPages[index + 1];
     newPages[index + 1] = newPages[index];
+    newPages[index + 1].pageNo = index + 2;
+    temp.pageNo = index + 1;
     newPages[index] = temp;
     onReorderPages(chapter.id, newPages.map((p) => p.id));
   };
@@ -101,7 +108,7 @@ export default function ChapterView({
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to {subject?.title || 'Subjects'}</span>
+          <span>{subjectTitle} पर वापस</span>
         </button>
 
         {/* Action Header Buttons */}
@@ -111,38 +118,40 @@ export default function ChapterView({
             className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md transition-all active:scale-95"
           >
             <Camera className="w-4 h-4" />
-            <span>Add More Pages</span>
+            <span>और पृष्ठ जोड़ें</span>
           </button>
 
           <button
             onClick={() => onOpenPdfExport(chapter, subject, pages)}
             disabled={pages.length === 0}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-emerald-400 border border-emerald-500/30 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+            title="इस अध्याय की रंगीन PDF बनाएं"
           >
             <Download className="w-4 h-4" />
-            <span>Download Chapter PDF</span>
+            <span>अध्याय PDF डाउनलोड</span>
           </button>
 
           <button
             onClick={() => onOpenAiAssistant(chapter, subject, pages)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+            title="अपलोड किए गए नोट्स पर आधारित AI अध्ययन एवं MCQ"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>AI Study Prep</span>
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span>AI अध्ययन एवं रिविजन</span>
           </button>
 
           <button
             onClick={() => {
               if (
                 confirm(
-                  `Are you sure you want to delete "${chapter.title}"? Scanned pages will move to the Recycle Bin.`
+                  `क्या आप वाकई अध्याय "${chapterTitle}" हटाना चाहते हैं? इसके स्कैन किए गए पृष्ठ रीसायकल बिन में चले जाएंगे।`
                 )
               ) {
                 onDeleteChapter(chapter.id);
               }
             }}
             className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
-            title="Delete Chapter"
+            title="अध्याय हटाएं"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -157,15 +166,15 @@ export default function ChapterView({
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full">
-                Chapter {chapter.chapterNo || 1}
+                अध्याय {chapter.chapterNo || 1}
               </span>
               <span className="text-xs text-slate-400">
-                {subject?.title} ({subject?.hindiTitle})
+                {subjectTitle}
               </span>
             </div>
 
             <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              {chapter.title}
+              {chapterTitle}
             </h2>
 
             {chapter.description && (
@@ -195,15 +204,15 @@ export default function ChapterView({
                 {pages.length}
               </div>
               <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">
-                {pages.length === 1 ? 'Page Scanned' : 'Pages Scanned'}
+                {pages.length === 1 ? 'पृष्ठ स्कैन' : 'कुल पृष्ठ स्कैन'}
               </div>
             </div>
 
             <div className="text-[11px] text-slate-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
               <span>
-                Updated{' '}
-                {new Date(chapter.updatedAt || Date.now()).toLocaleDateString()}
+                अपडेटेड:{' '}
+                {new Date(chapter.updatedAt || Date.now()).toLocaleDateString('hi-IN')}
               </span>
             </div>
           </div>
@@ -214,9 +223,9 @@ export default function ChapterView({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-white">Pages in Chapter</h3>
+            <h3 className="text-base font-bold text-white">अध्याय के पृष्ठ</h3>
             <span className="text-xs text-slate-400 font-medium">
-              (Drag or click arrows to reorder pages for PDF)
+              (PDF हेतु पृष्ठों का क्रम बदलने के लिए तीरों का उपयोग करें)
             </span>
           </div>
 
@@ -225,7 +234,7 @@ export default function ChapterView({
             className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Page</span>
+            <span>नया पृष्ठ जोड़ें</span>
           </button>
         </div>
 
@@ -235,10 +244,10 @@ export default function ChapterView({
               <Camera className="w-8 h-8" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-white">No pages scanned yet</h4>
+              <h4 className="text-base font-bold text-white">अभी तक कोई पृष्ठ स्कैन नहीं किया गया</h4>
               <p className="text-xs text-slate-400 max-w-sm mt-1">
-                Take a photo of your handwritten or printed notes for this chapter.
-                CamScanner will automatically crop and straighten the page!
+                इस अध्याय के अपने हस्तलिखित नोट्स की फोटो खींचें या गैलरी से अपलोड करें।
+                स्कैनर स्वचालित रूप से पृष्ठ को सीधा, साफ व रंगीन करेगा!
               </p>
             </div>
             <button
@@ -246,7 +255,7 @@ export default function ChapterView({
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2"
             >
               <Camera className="w-4 h-4" />
-              <span>Scan Page 1 Now</span>
+              <span>अभी पृष्ठ 1 स्कैन करें</span>
             </button>
           </div>
         ) : (
@@ -263,7 +272,7 @@ export default function ChapterView({
                       {index + 1}
                     </span>
                     <span className="text-[11px] font-semibold text-slate-300">
-                      Page {page.pageNo || index + 1}
+                      पृष्ठ {page.pageNo || index + 1}
                     </span>
                   </div>
 
@@ -275,7 +284,7 @@ export default function ChapterView({
                           ? 'text-amber-400 bg-amber-400/20'
                           : 'text-slate-500 hover:text-amber-400'
                       }`}
-                      title={page.isStarred ? 'Starred' : 'Mark as High Yield'}
+                      title={page.isStarred ? 'महत्वपूर्ण (Starred)' : 'महत्वपूर्ण मार्क करें'}
                     >
                       <Star className="w-3.5 h-3.5 fill-current" />
                     </button>
@@ -286,7 +295,7 @@ export default function ChapterView({
                           ? 'text-blue-400 bg-blue-400/20'
                           : 'text-slate-500 hover:text-blue-400'
                       }`}
-                      title="Bookmark page"
+                      title="बुकमार्क करें"
                     >
                       <Bookmark className="w-3.5 h-3.5" />
                     </button>
@@ -300,7 +309,7 @@ export default function ChapterView({
                 >
                   <img
                     src={page.processedDataUrl || page.originalDataUrl}
-                    alt={`Page ${index + 1}`}
+                    alt={`पृष्ठ ${index + 1}`}
                     className="w-full h-full object-contain rounded shadow transition-transform duration-200 group-hover:scale-[1.02]"
                     loading="lazy"
                   />
@@ -309,14 +318,14 @@ export default function ChapterView({
                   <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
                     <span className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow-lg flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5" />
-                      <span>Inspect</span>
+                      <span>देखें</span>
                     </span>
                   </div>
 
                   {/* OCR indicator tag */}
                   {page.ocrText && (
-                    <div className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] text-slate-300 border border-slate-700/80 font-mono">
-                      OCR Ready
+                    <div className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] text-emerald-300 border border-emerald-500/30 font-medium">
+                      OCR तैयार
                     </div>
                   )}
                 </div>
@@ -329,7 +338,7 @@ export default function ChapterView({
                       onClick={() => movePageLeft(index)}
                       disabled={index === 0}
                       className="p-1 hover:text-white disabled:opacity-20 transition-colors"
-                      title="Move Page Left"
+                      title="पृष्ठ बाएं खिसकाएं"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
@@ -337,7 +346,7 @@ export default function ChapterView({
                       onClick={() => movePageRight(index)}
                       disabled={index === pages.length - 1}
                       className="p-1 hover:text-white disabled:opacity-20 transition-colors"
-                      title="Move Page Right"
+                      title="पृष्ठ दाएं खिसकाएं"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -347,7 +356,7 @@ export default function ChapterView({
                   <button
                     onClick={() => handleRotatePage(page)}
                     className="p-1 hover:text-white transition-colors"
-                    title="Rotate 90 degrees"
+                    title="90° घुमाएं"
                   >
                     <RotateCw className="w-3.5 h-3.5" />
                   </button>
@@ -355,12 +364,12 @@ export default function ChapterView({
                   {/* Delete */}
                   <button
                     onClick={() => {
-                      if (confirm(`Move Page ${index + 1} to Recycle Bin?`)) {
+                      if (confirm(`क्या आप पृष्ठ ${index + 1} को रीसायकल बिन में भेजना चाहते हैं?`)) {
                         onDeletePage(page.id);
                       }
                     }}
                     className="p-1 hover:text-red-400 transition-colors"
-                    title="Move to Recycle Bin"
+                    title="रीसायकल बिन में भेजें"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

@@ -93,7 +93,7 @@ export default function SettingsModal({
       await exportCompleteBackup();
     } catch (e) {
       console.error(e);
-      alert('Error exporting backup.');
+      alert('बैकअप निर्यात करने में त्रुटि।');
     } finally {
       setIsExporting(false);
     }
@@ -105,7 +105,7 @@ export default function SettingsModal({
       await downloadAllNotesZip(subjects, chapters, pages);
     } catch (e) {
       console.error(e);
-      alert('Error creating ZIP archive.');
+      alert('ZIP संग्रह बनाने में त्रुटि।');
     } finally {
       setIsExportingZip(false);
     }
@@ -119,12 +119,12 @@ export default function SettingsModal({
     reader.onload = async (event) => {
       try {
         await importBackupData(event.target.result);
-        alert('Notes backup imported successfully!');
+        alert('नोट्स बैकअप सफलतापूर्वक लोड (Import) हो गया!');
         if (onDataResetOrImported) onDataResetOrImported();
         onClose();
       } catch (err) {
         console.error(err);
-        alert('Failed to import backup. Please ensure the file is a valid JSON backup.');
+        alert('बैकअप लोड करने में विफल। कृपया सुनिश्चित करें कि फ़ाइल एक वैध JSON बैकअप है।');
       }
     };
     reader.readAsText(file);
@@ -140,9 +140,9 @@ export default function SettingsModal({
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Settings & Cloud Backup</h3>
+              <h3 className="text-base font-bold text-white">सेटिंग्स एवं क्लाउड सिंक</h3>
               <p className="text-xs text-slate-400">
-                Personal preferences, backup, and AI config for Sudha
+                सुधा BPSC नोट्स: व्यक्तिगत सेटिंग्स, बैकअप एवं AI विन्यास
               </p>
             </div>
           </div>
@@ -166,13 +166,13 @@ export default function SettingsModal({
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    Multi-Device Cloud Sync
+                    मल्टी-डिवाइस क्लाउड सिंक
                     <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
-                      Neon DB Active
+                      Neon DB एक्टिव
                     </span>
                   </h4>
                   <p className="text-xs text-slate-400">
-                    Sync notes automatically between your Phone and Computer
+                    अपने फोन और कंप्यूटर के बीच नोट्स का लाइव सिंक करें
                   </p>
                 </div>
               </div>
@@ -190,14 +190,14 @@ export default function SettingsModal({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium text-slate-300">
-                  Sync Code (Must match on Phone and Computer)
+                  सिंक कोड (फोन और कंप्यूटर दोनों पर एक जैसा होना चाहिए)
                 </label>
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                   <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Phone</span>
+                  <span>फोन</span>
                   <span>↔</span>
                   <Laptop className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Computer</span>
+                  <span>कंप्यूटर</span>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -205,7 +205,7 @@ export default function SettingsModal({
                   type="text"
                   value={syncCode}
                   onChange={(e) => setSyncCode(e.target.value)}
-                  placeholder="e.g. SudhaBPSC"
+                  placeholder="उदा. SudhaBPSC"
                   className="flex-1 px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 font-mono tracking-wider"
                 />
                 <button
@@ -220,7 +220,7 @@ export default function SettingsModal({
                     }`}
                   />
                   <span>
-                    {manualSyncLoading || syncState?.status === 'syncing' ? 'Syncing...' : 'Sync Now'}
+                    {manualSyncLoading || syncState?.status === 'syncing' ? 'सिंक हो रहा है...' : 'अभी सिंक करें'}
                   </span>
                 </button>
               </div>
@@ -231,22 +231,22 @@ export default function SettingsModal({
                 {syncState?.status === 'syncing' ? (
                   <span className="flex items-center gap-1 text-blue-400">
                     <RefreshCw className="w-3 h-3 animate-spin" />
-                    Synchronizing notes...
+                    नोट्स सिंक किए जा रहे हैं...
                   </span>
                 ) : syncState?.status === 'error' ? (
                   <span className="text-rose-400">
-                    Sync error: {syncState.error || 'Check connection'}
+                    सिंक समस्या: {syncState.error || 'इंटरनेट कनेक्शन जांचें'}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 text-emerald-400">
                     <CloudCheck className="w-3.5 h-3.5" />
-                    Connected to Cloud
+                    क्लाउड से जुड़ा हुआ है (Connected)
                   </span>
                 )}
               </div>
               {syncState?.lastSyncedAt && (
                 <span>
-                  Last synced:{' '}
+                  अंतिम सिंक:{' '}
                   {new Date(syncState.lastSyncedAt).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -259,7 +259,7 @@ export default function SettingsModal({
           {/* Section 1: Backup & ZIP Downloads */}
           <div className="space-y-3">
             <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-              📦 Backup & Downloads
+              📦 बैकअप एवं ऑफ़लाइन डाउनलोड
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -278,10 +278,10 @@ export default function SettingsModal({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-white group-hover:text-blue-400">
-                    Backup All Notes
+                    सम्पूर्ण नोट्स का बैकअप लें
                   </h4>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Save all subjects, chapters & scans to single backup file
+                    सभी विषय, अध्याय एवं स्कैन की गई कॉपियां एक सुरक्षित बैकअप फ़ाइल में सहेजें
                   </p>
                 </div>
               </button>
@@ -301,10 +301,10 @@ export default function SettingsModal({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-white group-hover:text-emerald-400">
-                    Download ZIP (All PDFs)
+                    सभी PDF का ZIP डाउनलोड करें
                   </h4>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Folders for every subject containing chapter PDFs
+                    प्रत्येक विषय के फोल्डर में सभी अध्यायों की PDF एक क्लिक में पाएं
                   </p>
                 </div>
               </button>
@@ -318,7 +318,7 @@ export default function SettingsModal({
                 className="w-full py-2.5 px-4 bg-slate-800/60 hover:bg-slate-800 border border-dashed border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-2 transition-colors"
               >
                 <Upload className="w-4 h-4 text-blue-400" />
-                <span>Restore Notes from JSON Backup</span>
+                <span>JSON बैकअप फ़ाइल से नोट्स रीस्टोर (पुनर्प्राप्त) करें</span>
               </button>
               <input
                 ref={fileInputRef}
@@ -333,10 +333,10 @@ export default function SettingsModal({
           {/* Section 2: AI Configuration */}
           <div className="space-y-3 pt-2 border-t border-slate-800">
             <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-              🤖 Google Gemini AI Key (Optional)
+              🤖 Google Gemini AI कुंजी (वैकल्पिक / Optional)
             </label>
             <p className="text-xs text-slate-400">
-              The built-in BPSC assistant already works 100% offline. Adding a Google Gemini API key enables deep multimodal AI reading of complex handwritten cursive.
+              सुधा BPSC असिस्टेंट आपके अपलोड किए गए नोट्स से सीधे जुड़ा हुआ है। यदि आप अपनी Gemini API कुंजी दर्ज करना चाहते हैं तो यहाँ दर्ज कर सकते हैं।
             </p>
 
             <div className="relative">
@@ -355,7 +355,7 @@ export default function SettingsModal({
           <div className="space-y-3 pt-2 border-t border-slate-800">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                🔒 4-Digit Security Passcode
+                🔒 4-अंकों का सुरक्षा पिन (Passcode)
               </label>
               <input
                 type="checkbox"
@@ -371,7 +371,7 @@ export default function SettingsModal({
                 <input
                   type="password"
                   maxLength={4}
-                  placeholder="Enter 4-digit PIN (e.g. 1947)"
+                  placeholder="4-अंकों का पिन दर्ज करें (उदा. 1947)"
                   value={pinLock}
                   onChange={(e) => setPinLock(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 tracking-widest font-mono"
@@ -384,14 +384,14 @@ export default function SettingsModal({
           <div className="p-4 bg-blue-950/40 border border-blue-500/20 rounded-2xl flex items-start gap-3">
             <Smartphone className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
             <div className="text-xs space-y-1">
-              <h5 className="font-bold text-white">How to Install as App on Phone</h5>
+              <h5 className="font-bold text-white">फोन में ऐप की तरह कैसे इंस्टॉल करें</h5>
               <p className="text-slate-300">
-                On Chrome for Android: Tap the 3 dots menu → tap{' '}
-                <span className="text-amber-400 font-semibold">"Install App"</span> or "Add to Home screen".
+                Android फोन में: क्रोम ब्राउज़र में ऊपर 3 डॉट्स मेनू पर टैप करें →{' '}
+                <span className="text-amber-400 font-semibold">"ऐप इंस्टॉल करें (Install App)"</span> या "होम स्क्रीन पर जोड़ें"।
               </p>
               <p className="text-slate-300">
-                On iPhone Safari: Tap Share button → tap{' '}
-                <span className="text-amber-400 font-semibold">"Add to Home Screen"</span>.
+                iPhone Safari में: नीचे शेयर (Share) बटन दबाएं →{' '}
+                <span className="text-amber-400 font-semibold">"होम स्क्रीन में जोड़ें (Add to Home Screen)"</span>।
               </p>
             </div>
           </div>
@@ -400,7 +400,7 @@ export default function SettingsModal({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-900/90">
           <span className="text-[11px] text-slate-500">
-            Sudha BPSC Notes v1.0.0 • PWA & Vercel Ready
+            सुधा BPSC नोट्स v1.0.0 • PWA एवं क्लाउड सिंक सक्षम
           </span>
 
           <div className="flex items-center gap-2">
@@ -408,7 +408,7 @@ export default function SettingsModal({
               onClick={onClose}
               className="px-4 py-2 text-xs text-slate-400 hover:text-white"
             >
-              Cancel
+              रद्द करें
             </button>
             <button
               onClick={handleSave}
@@ -417,10 +417,10 @@ export default function SettingsModal({
               {saveSuccess ? (
                 <>
                   <Check className="w-3.5 h-3.5" />
-                  <span>Saved!</span>
+                  <span>सहेज लिया गया!</span>
                 </>
               ) : (
-                <span>Save Settings</span>
+                <span>सेटिंग्स सहेजें</span>
               )}
             </button>
           </div>

@@ -207,7 +207,7 @@ export default function ScannerModal({
       setStep('crop_adjust');
     } catch (err) {
       console.error('Failed to process image:', err);
-      alert('Error loading image. Please try another file.');
+      alert('फोटो लोड करने में त्रुटि। कृपया कोई अन्य फ़ाइल चुनें।');
     } finally {
       setIsProcessing(false);
     }
@@ -525,18 +525,18 @@ export default function ScannerModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                CamScanner Notes Engine
+                कैमस्कैनर नोट्स इंजन
                 {sessionPagesScanned > 0 && (
                   <span className="text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">
-                    {sessionPagesScanned} {sessionPagesScanned === 1 ? 'Page' : 'Pages'} Scanned
+                    {sessionPagesScanned} {sessionPagesScanned === 1 ? 'पृष्ठ' : 'पृष्ठ'} स्कैन
                   </span>
                 )}
               </h2>
               <p className="text-xs text-slate-400">
-                {step === 'select_target' && 'Step 1: Choose Subject & Chapter'}
-                {step === 'capture' && 'Step 2: Capture or Upload Page'}
-                {step === 'crop_adjust' && 'Step 3: CamScanner 4-Corner Perspective Crop'}
-                {step === 'filter_review' && 'Step 4: Enhance & Review Scan'}
+                {step === 'select_target' && 'चरण 1: BPSC विषय एवं अध्याय चुनें'}
+                {step === 'capture' && 'चरण 2: फोटो खींचें या गैलरी से चुनें'}
+                {step === 'crop_adjust' && 'चरण 3: 4-कोनों से पृष्ठ सीधा करें (Perspective Crop)'}
+                {step === 'filter_review' && 'चरण 4: रंगीन फ़िल्टर चुनें एवं सहेजें'}
               </p>
             </div>
           </div>
@@ -560,7 +560,7 @@ export default function ScannerModal({
               {/* Subject Selection */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  1. Select BPSC Subject
+                  1. BPSC विषय चुनें
                 </label>
                 {!isCreatingNewSubject ? (
                   <div className="space-y-2">
@@ -574,7 +574,7 @@ export default function ScannerModal({
                     >
                       {subjects.map((s) => (
                         <option key={s.id} value={s.id}>
-                          {s.icon} {s.title} ({s.hindiTitle})
+                          {s.icon} {s.hindiTitle || s.title} {s.englishTitle ? `(${s.englishTitle})` : ''}
                         </option>
                       ))}
                     </select>
@@ -584,14 +584,14 @@ export default function ScannerModal({
                       onClick={() => setIsCreatingNewSubject(true)}
                       className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium mt-1"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Or Create Custom Subject
+                      <Plus className="w-3.5 h-3.5" /> + नया कस्टम विषय बनाएं
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <input
                       type="text"
-                      placeholder="e.g. Bihar Special Economy / Anthropology"
+                      placeholder="उदा. बिहार विशेष अर्थशास्त्र / दर्शनशास्त्र"
                       value={newSubjectTitle}
                       onChange={(e) => setNewSubjectTitle(e.target.value)}
                       className="w-full px-4 py-3 bg-slate-800 border border-blue-500 rounded-xl text-white font-medium focus:outline-none"
@@ -601,7 +601,7 @@ export default function ScannerModal({
                       onClick={() => setIsCreatingNewSubject(false)}
                       className="text-xs text-slate-400 hover:text-slate-300"
                     >
-                      Cancel & Choose Existing Subject
+                      रद्द करें व मौजूदा विषय चुनें
                     </button>
                   </div>
                 )}
@@ -610,7 +610,7 @@ export default function ScannerModal({
               {/* Chapter Selection */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  2. Select Chapter / Topic
+                  2. अध्याय / टॉपिक चुनें
                 </label>
                 {!isCreatingNewChapter ? (
                   <div className="space-y-2">
@@ -619,10 +619,10 @@ export default function ScannerModal({
                       onChange={(e) => setSelectedChapterId(e.target.value)}
                       className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
-                      <option value="">-- Choose an existing chapter --</option>
+                      <option value="">-- अध्याय चुनें --</option>
                       {availableChapters.map((c) => (
                         <option key={c.id} value={c.id}>
-                          Chapter {c.chapterNo}: {c.title}
+                          अध्याय {c.chapterNo}: {c.hindiTitle || c.title}
                         </option>
                       ))}
                     </select>
@@ -632,14 +632,14 @@ export default function ScannerModal({
                       onClick={() => setIsCreatingNewChapter(true)}
                       className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium mt-1"
                     >
-                      <Plus className="w-3.5 h-3.5" /> + Create New Chapter for this Subject
+                      <Plus className="w-3.5 h-3.5" /> + इस विषय में नया अध्याय बनाएं
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <input
                       type="text"
-                      placeholder="e.g. Chapter 4: Governor & State Legislative Assembly"
+                      placeholder="उदा. अध्याय 4: राज्यपाल एवं राज्य विधानमंडल"
                       value={newChapterTitle}
                       onChange={(e) => setNewChapterTitle(e.target.value)}
                       className="w-full px-4 py-3 bg-slate-800 border border-blue-500 rounded-xl text-white font-medium focus:outline-none"
@@ -649,7 +649,7 @@ export default function ScannerModal({
                       onClick={() => setIsCreatingNewChapter(false)}
                       className="text-xs text-slate-400 hover:text-slate-300"
                     >
-                      Cancel & Choose Existing Chapter
+                      रद्द करें व मौजूदा अध्याय चुनें
                     </button>
                   </div>
                 )}
@@ -667,7 +667,7 @@ export default function ScannerModal({
                   }}
                   className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold rounded-xl shadow-lg flex items-center gap-2"
                 >
-                  <span>Continue to Camera & Upload</span>
+                  <span>कैमरा व फोटो अपलोड पर आगे बढ़ें</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -691,14 +691,14 @@ export default function ScannerModal({
                   {/* Document Grid Overlay */}
                   <div className="absolute inset-6 border border-white/30 rounded-xl pointer-events-none flex flex-col justify-between p-2">
                     <div className="flex justify-between text-white/50 text-[10px] uppercase font-mono tracking-widest">
-                      <span>TL Corner</span>
-                      <span>TR Corner</span>
+                      <span>ऊपरी बायां कोना</span>
+                      <span>ऊपरी दायां कोना</span>
                     </div>
                     {/* Pulsing scanner beam */}
                     <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent scanner-laser"></div>
                     <div className="flex justify-between text-white/50 text-[10px] uppercase font-mono tracking-widest">
-                      <span>BL Corner</span>
-                      <span>BR Corner</span>
+                      <span>निचला बायां कोना</span>
+                      <span>निचला दायां कोना</span>
                     </div>
                   </div>
 
@@ -708,7 +708,7 @@ export default function ScannerModal({
                       type="button"
                       onClick={toggleCameraFacing}
                       className="p-3 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 backdrop-blur-md border border-slate-700 transition-colors"
-                      title="Switch Camera (Front/Rear)"
+                      title="कैमरा बदलें (आगे / पीछे)"
                     >
                       <RefreshCw className="w-5 h-5" />
                     </button>
@@ -728,7 +728,7 @@ export default function ScannerModal({
                       type="button"
                       onClick={stopCamera}
                       className="p-3 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 backdrop-blur-md border border-slate-700 transition-colors"
-                      title="Close Camera"
+                      title="कैमरा बंद करें"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -749,11 +749,11 @@ export default function ScannerModal({
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-base flex items-center justify-center gap-1.5">
-                          <span>Open Phone Camera</span>
-                          <span className="text-[10px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-extrabold">Instant</span>
+                          <span>फोन का कैमरा खोलें</span>
+                          <span className="text-[10px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-extrabold">तुरंत</span>
                         </h3>
                         <p className="text-xs text-blue-200 mt-1">
-                          Takes full HD photo directly with phone camera & auto-focus
+                          फोन कैमरे से ऑटो-फोकस के साथ सीधे फुल HD फोटो खींचें
                         </p>
                       </div>
                     </button>
@@ -768,9 +768,9 @@ export default function ScannerModal({
                         <Upload className="w-7 h-7" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-white text-base">Choose from Gallery</h3>
+                        <h3 className="font-bold text-white text-base">गैलरी से फोटो चुनें</h3>
                         <p className="text-xs text-slate-400 mt-1">
-                          Upload saved note photos from gallery or files
+                          गैलरी या फ़ाइल से सहेजे गए नोट्स की फोटो अपलोड करें
                         </p>
                       </div>
                     </button>
@@ -783,7 +783,7 @@ export default function ScannerModal({
                     className="w-full py-3 px-4 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 flex items-center justify-center gap-2 transition-colors"
                   >
                     <RefreshCw className="w-4 h-4 text-blue-400" />
-                    <span>Or Launch Live In-Browser Viewfinder (with Laser Grid)</span>
+                    <span>या लाइव इन-ब्राउज़र व्यूफाइंडर चालू करें (लेजर ग्रिड के साथ)</span>
                   </button>
 
                   {/* Native Phone Camera Input (opens camera directly on Android & iOS) */}
@@ -813,9 +813,9 @@ export default function ScannerModal({
                   onClick={() => setStep('select_target')}
                   className="hover:text-white"
                 >
-                  ← Change Subject / Chapter
+                  ← विषय / अध्याय बदलें
                 </button>
-                <span>CamScanner Auto-Detection Enabled</span>
+                <span>कैमस्कैनर ऑटो-डिटेक्शन सक्रिय</span>
               </div>
             </div>
           )}
@@ -838,7 +838,7 @@ export default function ScannerModal({
                     }}
                     className="px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg shrink-0 ml-2"
                   >
-                    Retake
+                    दोबारा फोटो लें
                   </button>
                 </div>
               )}
@@ -858,7 +858,7 @@ export default function ScannerModal({
 
                 <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-700 text-[11px] text-slate-300 flex items-center gap-1.5 shadow">
                   <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                  Drag blue circles to align 4 page corners
+                  पेज के 4 कोनों को सीधा करने के लिए नीले बिंदुओं को खिसकाएं
                 </div>
               </div>
 
@@ -875,7 +875,7 @@ export default function ScannerModal({
                     className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    Auto Detect
+                    ऑटो डिटेक्ट
                   </button>
 
                   <button
@@ -890,7 +890,7 @@ export default function ScannerModal({
                     }}
                     className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300"
                   >
-                    Full Image
+                    पूरा पृष्ठ
                   </button>
                 </div>
 
@@ -902,7 +902,7 @@ export default function ScannerModal({
                     }}
                     className="px-3 py-1.5 text-slate-400 hover:text-white"
                   >
-                    Cancel / Retake
+                    रद्द करें / दोबारा फोटो लें
                   </button>
 
                   <button
@@ -911,7 +911,7 @@ export default function ScannerModal({
                     disabled={isProcessing}
                     className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg flex items-center gap-1.5 active:scale-95 transition-all"
                   >
-                    <span>Crop & Straighten</span>
+                    <span>क्रॉप और सीधा करें</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -938,7 +938,7 @@ export default function ScannerModal({
                     type="button"
                     onClick={handleRotate}
                     className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md border border-slate-700 text-white shadow-lg"
-                    title="Rotate 90 degrees"
+                    title="90 डिग्री घुमाएं"
                   >
                     <RotateCw className="w-4 h-4" />
                   </button>
@@ -946,10 +946,10 @@ export default function ScannerModal({
                     type="button"
                     onClick={() => setStep('crop_adjust')}
                     className="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md border border-slate-700 text-xs text-white shadow-lg flex items-center gap-1"
-                    title="Re-adjust 4 corners"
+                    title="4 कोनों को दोबारा ठीक करें"
                   >
                     <Sliders className="w-3.5 h-3.5" />
-                    <span>Edit Corners</span>
+                    <span>कोने ठीक करें</span>
                   </button>
                 </div>
               </div>
@@ -957,15 +957,15 @@ export default function ScannerModal({
               {/* CamScanner Filter Presets */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5">
-                  CamScanner Document Mode
+                  कैमस्कैनर डॉक्यूमेंट फ़िल्टर मोड
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {[
-                    { id: 'magic_color', name: 'Document / Magic Color', desc: 'Whitened paper, sharp ink' },
-                    { id: 'bw', name: 'Clean B&W', desc: 'Crisp black text' },
-                    { id: 'grayscale', name: 'Grayscale', desc: 'Smooth pencil/pen' },
-                    { id: 'enhanced', name: 'Enhanced', desc: 'Vivid contrast' },
-                    { id: 'original', name: 'Original', desc: 'Raw camera scan' },
+                    { id: 'magic_color', name: 'मैजिक कलर (दस्तावेज़)', desc: 'सफ़ेद कागज़, स्पष्ट स्याही' },
+                    { id: 'bw', name: 'साफ ब्लैक & व्हाइट', desc: 'गहरी काली लिखावट' },
+                    { id: 'grayscale', name: 'ग्रेस्केल', desc: 'पेंसिल/पेन नोट्स' },
+                    { id: 'enhanced', name: 'इनहैंस्ड (तीव्र)', desc: 'तेज कंट्रास्ट' },
+                    { id: 'original', name: 'मूल फोटो (Original)', desc: 'कैमरे की वास्तविक फोटो' },
                   ].map((f) => (
                     <button
                       key={f.id}
@@ -988,7 +988,7 @@ export default function ScannerModal({
               <div>
                 <input
                   type="text"
-                  placeholder="Optional page note (e.g. High probability BPSC Mains topic / 1857 dates)"
+                  placeholder="वैकल्पिक पेज नोट (उदा. BPSC मुख्य परीक्षा हेतु अति-महत्वपूर्ण / 1857 तिथियां)"
                   value={pageNote}
                   onChange={(e) => setPageNote(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
@@ -1002,7 +1002,7 @@ export default function ScannerModal({
                   onClick={() => setStep('crop_adjust')}
                   className="px-4 py-2 text-xs text-slate-400 hover:text-white"
                 >
-                  ← Back to Crop
+                  ← वापस क्रॉप पर जाएं
                 </button>
 
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -1014,7 +1014,7 @@ export default function ScannerModal({
                     className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-500/40 font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Save & Scan Next Page</span>
+                    <span>सहेजें एवं अगला पृष्ठ जोड़ें</span>
                   </button>
 
                   {/* Finish & View Chapter */}
@@ -1025,7 +1025,7 @@ export default function ScannerModal({
                     className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center gap-1.5"
                   >
                     <Check className="w-4 h-4" />
-                    <span>Done & Review</span>
+                    <span>सहेजें और अध्याय देखें</span>
                   </button>
                 </div>
               </div>

@@ -29,10 +29,13 @@ export default function SubjectDetailView({
   const [newChapterTitle, setNewChapterTitle] = useState('');
   const [newChapterNo, setNewChapterNo] = useState(chapters.length + 1);
   const [newChapterDesc, setNewChapterDesc] = useState('');
-  const [newChapterTags, setNewChapterTags] = useState('BPSC, Prelims');
+  const [newChapterTags, setNewChapterTags] = useState('BPSC, प्रारंभिक परीक्षा');
 
   const activePages = pages.filter((p) => !p.isDeleted);
   const subjectChapters = chapters.filter((c) => c.subjectId === subject.id);
+
+  const displayTitle = subject.hindiTitle || subject.title;
+  const displaySubtitle = subject.englishTitle || (subject.hindiTitle !== subject.title ? subject.title : '');
 
   const handleAddChapterSubmit = (e) => {
     e.preventDefault();
@@ -46,6 +49,7 @@ export default function SubjectDetailView({
     onCreateChapter({
       subjectId: subject.id,
       title: newChapterTitle.trim(),
+      hindiTitle: newChapterTitle.trim(),
       chapterNo: parseInt(newChapterNo, 10) || subjectChapters.length + 1,
       description: newChapterDesc.trim(),
       tags: tagsArray.length > 0 ? tagsArray : ['BPSC'],
@@ -65,16 +69,17 @@ export default function SubjectDetailView({
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to All Subjects</span>
+          <span>सभी विषयों पर वापस</span>
         </button>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => onDownloadSubjectPdf(subject)}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+            title="सम्पूर्ण विषय की संयुक्त PDF डाउनलोड करें"
           >
             <Download className="w-4 h-4" />
-            <span>Download Full Subject PDF</span>
+            <span>सम्पूर्ण विषय PDF</span>
           </button>
 
           <button
@@ -82,7 +87,7 @@ export default function SubjectDetailView({
             className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95"
           >
             <Camera className="w-4 h-4" />
-            <span>Scan to Subject</span>
+            <span>नोट्स स्कैन करें</span>
           </button>
 
           {onDeleteSubject && (
@@ -90,14 +95,14 @@ export default function SubjectDetailView({
               onClick={() => {
                 if (
                   confirm(
-                    `Are you sure you want to delete the entire subject "${subject.title}"? All chapters and scanned pages inside will be moved to the Recycle Bin.`
+                    `क्या आप वाकई सम्पूर्ण विषय "${displayTitle}" हटाना चाहते हैं? इसके सभी अध्याय और पृष्ठ रीसायकल बिन में चले जाएंगे।`
                   )
                 ) {
                   onDeleteSubject(subject.id);
                 }
               }}
               className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
-              title="Delete Subject"
+              title="विषय हटाएं"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -113,11 +118,13 @@ export default function SubjectDetailView({
           </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              {subject.title}
+              {displayTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-amber-400 font-semibold mt-0.5">
-              {subject.hindiTitle}
-            </p>
+            {displaySubtitle && (
+              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
+                {displaySubtitle}
+              </p>
+            )}
             <p className="text-xs text-slate-400 mt-1 max-w-xl">
               {subject.description}
             </p>
@@ -130,7 +137,7 @@ export default function SubjectDetailView({
               {subjectChapters.length}
             </div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Chapters
+              कुल अध्याय
             </div>
           </div>
         </div>
@@ -139,7 +146,7 @@ export default function SubjectDetailView({
       {/* Chapters Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-          <span>Chapters in this Subject</span>
+          <span>इस विषय के अध्याय</span>
           <span className="text-xs px-2.5 py-0.5 bg-slate-800 text-slate-400 rounded-full font-mono border border-slate-700">
             {subjectChapters.length}
           </span>
@@ -153,7 +160,7 @@ export default function SubjectDetailView({
           className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 rounded-xl text-xs font-semibold transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>New Chapter</span>
+          <span>नया अध्याय जोड़ें</span>
         </button>
       </div>
 
@@ -162,17 +169,16 @@ export default function SubjectDetailView({
         <div className="p-12 rounded-3xl border-2 border-dashed border-slate-800 bg-slate-900/40 text-center space-y-4">
           <BookOpen className="w-12 h-12 text-slate-600 mx-auto" />
           <div>
-            <h4 className="text-base font-bold text-white">No chapters created yet</h4>
+            <h4 className="text-base font-bold text-white">कोई अध्याय नहीं बनाया गया</h4>
             <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-              Add your first chapter (e.g. Chapter 1: Ancient Magadha & Mauryan Empire)
-              and begin scanning your notes!
+              पहला अध्याय बनाएं (उदा. अध्याय 1: 1857 का विद्रोह एवं कुंवर सिंह) और अपने हस्तलिखित नोट्स स्कैन करना प्रारंभ करें!
             </p>
           </div>
           <button
             onClick={() => setIsAddChapterOpen(true)}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-lg"
           >
-            Create Chapter 1
+            अध्याय 1 बनाएं
           </button>
         </div>
       ) : (
@@ -191,17 +197,16 @@ export default function SubjectDetailView({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
-                        Chapter {chap.chapterNo || 1}
+                        अध्याय {chap.chapterNo || 1}
                       </span>
                       <h4 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors mt-2">
-                        {chap.title}
+                        {chap.hindiTitle || chap.title}
                       </h4>
                     </div>
 
                     <div className="text-right">
                       <span className="text-xs font-bold text-amber-400">
-                        {chapPages.length}{' '}
-                        {chapPages.length === 1 ? 'Page' : 'Pages'}
+                        {chapPages.length} पृष्ठ
                       </span>
                     </div>
                   </div>
@@ -229,7 +234,7 @@ export default function SubjectDetailView({
                     <button
                       onClick={() => onOpenScanner(subject.id, chap.id)}
                       className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-                      title="Add Pages to this Chapter"
+                      title="इस अध्याय में पृष्ठ जोड़ें"
                     >
                       <Camera className="w-4 h-4" />
                     </button>
@@ -237,7 +242,7 @@ export default function SubjectDetailView({
                       onClick={() => onDownloadChapterPdf(chap, subject, chapPages)}
                       disabled={chapPages.length === 0}
                       className="p-1.5 text-emerald-400 hover:text-emerald-300 disabled:opacity-30 rounded-lg hover:bg-slate-800 transition-colors"
-                      title="Download Chapter PDF"
+                      title="अध्याय PDF डाउनलोड करें"
                     >
                       <Download className="w-4 h-4" />
                     </button>
@@ -247,7 +252,7 @@ export default function SubjectDetailView({
                     onClick={() => onSelectChapter(chap)}
                     className="px-3.5 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all"
                   >
-                    <span>Review Pages ({chapPages.length})</span>
+                    <span>पृष्ठ देखें ({chapPages.length})</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -262,17 +267,17 @@ export default function SubjectDetailView({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-white">
             <h3 className="text-lg font-bold text-white mb-1">
-              Add New Chapter
+              नया अध्याय जोड़ें
             </h3>
             <p className="text-xs text-slate-400 mb-4">
-              Subject: {subject.title}
+              विषय: {displayTitle}
             </p>
 
             <form onSubmit={handleAddChapterSubmit} className="space-y-4">
               <div className="grid grid-cols-4 gap-3">
                 <div className="col-span-1">
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Ch. No.
+                    संख्या
                   </label>
                   <input
                     type="number"
@@ -284,12 +289,12 @@ export default function SubjectDetailView({
                 </div>
                 <div className="col-span-3">
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Chapter Title *
+                    अध्याय का नाम (हिंदी में) *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Champaran Satyagraha & Gandhi"
+                    placeholder="उदा. चंपारण सत्याग्रह एवं गांधी जी"
                     value={newChapterTitle}
                     onChange={(e) => setNewChapterTitle(e.target.value)}
                     className="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
@@ -299,11 +304,11 @@ export default function SubjectDetailView({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Chapter Description / Sub-topics
+                  अध्याय विवरण / मुख्य बिंदु
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Tinkathia system, Raj Kumar Shukla, Inquiry Committee"
+                  placeholder="उदा. तिनकठिया प्रणाली, राजकुमार शुक्ल, जांच समिति"
                   value={newChapterDesc}
                   onChange={(e) => setNewChapterDesc(e.target.value)}
                   className="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
@@ -312,11 +317,11 @@ export default function SubjectDetailView({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Tags (Comma separated)
+                  टैग (अल्पविराम से अलग करें)
                 </label>
                 <input
                   type="text"
-                  placeholder="BPSC, Prelims, Modern History, Champaran"
+                  placeholder="BPSC, प्रारंभिक परीक्षा, आधुनिक इतिहास, चंपारण"
                   value={newChapterTags}
                   onChange={(e) => setNewChapterTags(e.target.value)}
                   className="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
@@ -329,13 +334,13 @@ export default function SubjectDetailView({
                   onClick={() => setIsAddChapterOpen(false)}
                   className="px-4 py-2 text-xs text-slate-400 hover:text-white"
                 >
-                  Cancel
+                  रद्द करें
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow-lg"
                 >
-                  Save Chapter
+                  अध्याय सहेजें
                 </button>
               </div>
             </form>

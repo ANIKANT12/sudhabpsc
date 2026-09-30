@@ -73,10 +73,10 @@ export default function InstallAppBanner() {
           </div>
           <div>
             <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-              Install Sudha BPSC App
+              सुधा BPSC ऐप इंस्टॉल करें
             </h4>
             <p className="text-[11px] text-blue-100 line-clamp-1">
-              Add to home screen for 1-tap camera & offline notes
+              1-टैप में कैमरा खोलने व ऑफ़लाइन पढ़ने हेतु होम स्क्रीन पर जोड़ें
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function InstallAppBanner() {
             className="px-3 py-1.5 bg-white text-blue-900 font-bold text-xs rounded-xl shadow-md active:scale-95 transition-transform flex items-center gap-1"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Install</span>
+            <span>इंस्टॉल करें</span>
           </button>
           <button
             onClick={() => setShowBanner(false)}
@@ -100,19 +100,19 @@ export default function InstallAppBanner() {
 
       {showIosInstructions && (
         <div className="mt-2 p-3 bg-slate-900/95 border border-slate-700 rounded-2xl text-xs text-slate-300 space-y-1 backdrop-blur-md shadow-xl">
-          <p className="font-semibold text-white">To install on iPhone / Safari:</p>
+          <p className="font-semibold text-white">iPhone / Safari पर इंस्टॉल करने के लिए:</p>
           <p>
-            1. Tap the <span className="text-blue-400 font-bold">Share icon</span> (box with arrow at the bottom).
+            1. नीचे <span className="text-blue-400 font-bold">शेयर आइकन</span> (तीर वाला बॉक्स) पर टैप करें।
           </p>
           <p>
-            2. Scroll down and tap{' '}
-            <span className="text-amber-400 font-bold">"Add to Home Screen"</span>.
+            2. नीचे स्क्रॉल करें और{' '}
+            <span className="text-amber-400 font-bold">"Add to Home Screen"</span> (होम स्क्रीन में जोड़ें) चुनें।
           </p>
           <button
             onClick={() => setShowIosInstructions(false)}
             className="mt-1 text-blue-400 text-[11px] font-semibold"
           >
-            Got it!
+            समझ गए!
           </button>
         </div>
       )}

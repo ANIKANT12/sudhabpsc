@@ -52,10 +52,10 @@ export default function PinLockScreen({ expectedPin, onUnlock }) {
 
         <div className="text-center space-y-1">
           <h2 className="text-xl font-bold text-white tracking-tight">
-            Sudha BPSC Notes
+            सुधा BPSC नोट्स
           </h2>
           <p className="text-xs text-slate-400">
-            Enter 4-digit security PIN to unlock
+            अनलॉक करने हेतु 4-अंकों का सुरक्षा पिन दर्ज करें
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function PinLockScreen({ expectedPin, onUnlock }) {
 
         {error && (
           <p className="text-xs font-semibold text-red-400">
-            Incorrect PIN. Try again.
+            गलत पिन दर्ज किया गया। पुनः प्रयास करें।
           </p>
         )}
 

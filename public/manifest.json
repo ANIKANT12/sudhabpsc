@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Sudha BPSC Notes - Personal Digital Notebook",
-  "short_name": "Sudha BPSC",
-  "description": "Personal BPSC Notes Organizer, CamScanner and PDF Generator for Sudha",
+  "name": "सुधा BPSC नोट्स - व्यक्तिगत डिजिटल नोटबुक",
+  "short_name": "सुधा BPSC",
+  "description": "सुधा BPSC नोट्स आयोजक, कैमस्कैनर, PDF जनरेटर एवं AI अध्ययन साथी",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

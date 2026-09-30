@@ -12,6 +12,8 @@ import {
   Loader2,
   Copy,
   Check,
+  Camera,
+  AlertCircle,
 } from 'lucide-react';
 import { generateStudyContent } from '../services/aiAssistant';
 
@@ -20,8 +22,9 @@ export default function AiAssistantModal({
   onClose,
   chapter,
   subject,
-  pages,
+  pages = [],
   apiKey,
+  onOpenScanner = null,
 }) {
   if (!isOpen || !chapter) return null;
 
@@ -33,11 +36,10 @@ export default function AiAssistantModal({
   const [isFlipped, setIsFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Compile OCR text from pages
-  const pagesText = pages
-    .filter((p) => p.ocrText)
-    .map((p) => p.ocrText)
-    .join('\n\n');
+  // Active pages belonging to this chapter
+  const chapterPages = Array.isArray(pages)
+    ? pages.filter((p) => p.chapterId === chapter.id && !p.isDeleted)
+    : [];
 
   const fetchTabContent = async (tab) => {
     if (content[tab]) return; // already loaded
@@ -47,12 +49,16 @@ export default function AiAssistantModal({
         tab,
         chapter,
         subject,
-        pagesText,
+        chapterPages,
         apiKey
       );
       setContent((prev) => ({ ...prev, [tab]: res }));
     } catch (e) {
       console.error(e);
+      setContent((prev) => ({
+        ...prev,
+        [tab]: 'अध्ययन सामग्री तैयार करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',
+      }));
     } finally {
       setLoading(false);
     }
@@ -73,11 +79,16 @@ export default function AiAssistantModal({
   }, [isOpen, activeTab, chapter?.id]);
 
   const handleCopySummary = () => {
-    if (!content.summary) return;
+    if (!content.summary || typeof content.summary !== 'string') return;
     navigator.clipboard.writeText(content.summary);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const currentTabContent = content[activeTab];
+  const hasEmptyNotes =
+    chapterPages.length === 0 ||
+    (currentTabContent && currentTabContent.emptyNotes);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-hidden text-white animate-in fade-in duration-200">
@@ -90,10 +101,13 @@ export default function AiAssistantModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                BPSC Smart AI Revision
+                BPSC AI अध्ययन एवं पुनरीक्षण
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  हस्तलिखित नोट्स आधारित
+                </span>
               </h3>
               <p className="text-xs text-slate-400">
-                {subject?.title} • {chapter?.title}
+                {subject?.hindiTitle || subject?.title} • {chapter?.hindiTitle || chapter?.title} ({chapterPages.length} पृष्ठ)
               </p>
             </div>
           </div>
@@ -109,10 +123,10 @@ export default function AiAssistantModal({
         {/* Tab Selector */}
         <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-800 bg-slate-950/40 overflow-x-auto">
           {[
-            { id: 'summary', name: 'Summary', icon: BookOpen },
-            { id: 'mcq', name: 'BPSC MCQs Practice', icon: HelpCircle },
-            { id: 'flashcards', name: 'Flashcards', icon: Brain },
-            { id: 'facts', name: 'Important Facts', icon: ListOrdered },
+            { id: 'summary', name: 'सारांश (Summary)', icon: BookOpen },
+            { id: 'mcq', name: 'MCQ अभ्यास (प्रश्नोत्तरी)', icon: HelpCircle },
+            { id: 'flashcards', name: 'फ्लैशकार्ड्स (त्वरित रिविजन)', icon: Brain },
+            { id: 'facts', name: 'महत्वपूर्ण तथ्य एवं तिथियां', icon: ListOrdered },
           ].map((t) => {
             const Icon = t.icon;
             return (
@@ -137,9 +151,41 @@ export default function AiAssistantModal({
           {loading ? (
             <div className="h-full flex flex-col items-center justify-center space-y-3 text-slate-400">
               <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-              <p className="text-xs">
-                Analyzing handwritten notes & generating BPSC study material...
+              <p className="text-xs font-medium text-slate-300">
+                आपके अपलोड किए गए हस्तलिखित नोट्स का विश्लेषण हो रहा है...
               </p>
+              <p className="text-[11px] text-slate-500">
+                (Google Gemini AI वास्तविक पृष्ठों को पढ़कर BPSC सामग्री तैयार कर रहा है)
+              </p>
+            </div>
+          ) : hasEmptyNotes ? (
+            /* EMPTY STATE: User has not uploaded any notes in this chapter yet */
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4 max-w-md mx-auto">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <AlertCircle className="w-8 h-8" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-base font-bold text-white">
+                  कोई हस्तलिखित नोट्स नहीं मिला
+                </h4>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  AI अध्ययन मोड केवल आपके द्वारा अपलोड किए गए वास्तविक नोट्स को पढ़कर सामग्री तैयार करता है। इस अध्याय में अभी तक कोई पृष्ठ स्कैन नहीं किया गया है।
+                </p>
+              </div>
+
+              {onOpenScanner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenScanner(subject?.id, chapter?.id);
+                  }}
+                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all active:scale-95"
+                >
+                  <Camera className="w-4 h-4 text-blue-200" />
+                  <span>अभी नोट्स अपलोड करें</span>
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -147,29 +193,31 @@ export default function AiAssistantModal({
               {activeTab === 'summary' && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-400 font-medium">
-                      High-yield revision notes synthesized from your scans
+                    <span className="text-xs text-purple-300 font-medium">
+                      अपलोड किए गए नोट्स से संकलित BPSC रिविजन सारांश:
                     </span>
                     <button
                       onClick={handleCopySummary}
-                      className="text-xs text-purple-300 hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700"
+                      className="text-xs text-purple-300 hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
                     >
                       {copied ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Copied</span>
+                          <span>कॉपी हो गया!</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5" />
-                          <span>Copy Summary</span>
+                          <span>सारांश कॉपी करें</span>
                         </>
                       )}
                     </button>
                   </div>
 
                   <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-2xl text-slate-200 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                    {content.summary}
+                    {typeof content.summary === 'string'
+                      ? content.summary
+                      : JSON.stringify(content.summary)}
                   </div>
                 </div>
               )}
@@ -245,7 +293,7 @@ export default function AiAssistantModal({
 
                           {isAnswered && item.explanation && (
                             <div className="mt-3 ml-8 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-200">
-                              <span className="font-bold">Explanation: </span>
+                              <span className="font-bold">व्याख्या: </span>
                               {item.explanation}
                             </div>
                           )}
@@ -254,7 +302,9 @@ export default function AiAssistantModal({
                     })
                   ) : (
                     <div className="p-5 bg-slate-950/60 rounded-2xl whitespace-pre-wrap text-xs">
-                      {content.mcq}
+                      {typeof content.mcq === 'string'
+                        ? content.mcq
+                        : JSON.stringify(content.mcq)}
                     </div>
                   )}
                 </div>
@@ -272,18 +322,18 @@ export default function AiAssistantModal({
                       >
                         <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400 mb-2">
                           {isFlipped
-                            ? '💡 Answer / Explanation'
-                            : '❓ Question (Tap to Reveal)'}
+                            ? '💡 उत्तर / व्याख्या (टैप करें)'
+                            : '❓ प्रश्न / अवधारणा (उत्तर देखने के लिए टैप करें)'}
                         </div>
 
-                        <p className="text-base sm:text-lg font-bold text-white">
+                        <p className="text-base sm:text-lg font-bold text-white leading-relaxed">
                           {isFlipped
                             ? content.flashcards[activeFlashcard]?.back
                             : content.flashcards[activeFlashcard]?.front}
                         </p>
 
                         <span className="absolute bottom-3 text-[10px] text-slate-500">
-                          Card {activeFlashcard + 1} of{' '}
+                          कार्ड {activeFlashcard + 1} /{' '}
                           {content.flashcards.length}
                         </span>
                       </div>
@@ -296,16 +346,16 @@ export default function AiAssistantModal({
                             setActiveFlashcard((prev) => Math.max(0, prev - 1));
                           }}
                           disabled={activeFlashcard === 0}
-                          className="px-4 py-2 bg-slate-800 text-xs font-semibold rounded-xl disabled:opacity-30"
+                          className="px-4 py-2 bg-slate-800 text-xs font-semibold rounded-xl disabled:opacity-30 hover:bg-slate-700"
                         >
-                          Previous Card
+                          पिछला कार्ड
                         </button>
 
                         <button
                           onClick={() => setIsFlipped(!isFlipped)}
-                          className="text-xs text-purple-400 font-semibold"
+                          className="text-xs text-purple-400 font-semibold hover:text-purple-300"
                         >
-                          Flip Card
+                          कार्ड पलटें
                         </button>
 
                         <button
@@ -318,15 +368,15 @@ export default function AiAssistantModal({
                           disabled={
                             activeFlashcard === content.flashcards.length - 1
                           }
-                          className="px-4 py-2 bg-slate-800 text-xs font-semibold rounded-xl disabled:opacity-30"
+                          className="px-4 py-2 bg-slate-800 text-xs font-semibold rounded-xl disabled:opacity-30 hover:bg-slate-700"
                         >
-                          Next Card
+                          अगला कार्ड
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div className="text-xs text-slate-400">
-                      No flashcards generated yet.
+                      कोई फ्लैशकार्ड तैयार नहीं हुआ।
                     </div>
                   )}
                 </div>
@@ -335,7 +385,9 @@ export default function AiAssistantModal({
               {/* TAB 4: FACTS */}
               {activeTab === 'facts' && (
                 <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-2xl text-slate-200 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                  {content.facts}
+                  {typeof content.facts === 'string'
+                    ? content.facts
+                    : JSON.stringify(content.facts)}
                 </div>
               )}
             </>

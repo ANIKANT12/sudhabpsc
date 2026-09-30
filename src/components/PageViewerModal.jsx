@@ -104,7 +104,7 @@ export default function PageViewerModal({
         <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
           <div className="flex items-center gap-3">
             <span className="px-2.5 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-bold font-mono">
-              Page {currentIndex + 1} / {totalPages}
+              पृष्ठ {currentIndex + 1} / {totalPages}
             </span>
 
             {/* Toggle Processed vs Original */}
@@ -117,7 +117,7 @@ export default function PageViewerModal({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                CamScanner Processed
+                स्कैन किया हुआ पृष्ठ
               </button>
               <button
                 onClick={() => setViewMode('original')}
@@ -127,7 +127,7 @@ export default function PageViewerModal({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Original Photo
+                मूल फोटो (Original)
               </button>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function PageViewerModal({
                   ? 'text-amber-400 bg-amber-400/20'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
-              title="Star / High Yield Note"
+              title="महत्वपूर्ण / स्टार नोट"
             >
               <Star className="w-4 h-4 fill-current" />
             </button>
@@ -157,7 +157,7 @@ export default function PageViewerModal({
                   ? 'text-blue-400 bg-blue-400/20'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
-              title="Bookmark Page"
+              title="बुकमार्क करें"
             >
               <Bookmark className="w-4 h-4" />
             </button>
@@ -165,7 +165,7 @@ export default function PageViewerModal({
             <button
               onClick={handleRotate}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              title="Rotate 90 degrees"
+              title="90 डिग्री घुमाएं"
             >
               <RotateCw className="w-4 h-4" />
             </button>
@@ -198,7 +198,7 @@ export default function PageViewerModal({
               <button
                 onClick={() => onNavigate(currentIndex - 1)}
                 className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md border border-slate-700 text-white shadow-xl"
-                title="Previous Page"
+                title="पिछला पृष्ठ"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
@@ -208,7 +208,7 @@ export default function PageViewerModal({
               <button
                 onClick={() => onNavigate(currentIndex + 1)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md border border-slate-700 text-white shadow-xl"
-                title="Next Page"
+                title="अगला पृष्ठ"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
@@ -223,7 +223,7 @@ export default function PageViewerModal({
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-blue-400" />
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Extracted Text (OCR)
+                    पहचाना गया टेक्स्ट (OCR)
                   </h4>
                 </div>
 
@@ -232,17 +232,17 @@ export default function PageViewerModal({
                     onClick={handleRunOcr}
                     disabled={isOcrRunning}
                     className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-500/10 border border-purple-500/20 disabled:opacity-50"
-                    title="Run OCR to extract text from this page"
+                    title="इस पृष्ठ से टेक्स्ट पढ़ने हेतु AI OCR चलाएं"
                   >
                     {isOcrRunning ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Reading...</span>
+                        <span>पढ़ा जा रहा है...</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>{ocrText ? 'Re-OCR' : 'Extract OCR'}</span>
+                        <span>{ocrText ? 'पुनः OCR करें' : 'टेक्स्ट पहचानें'}</span>
                       </>
                     )}
                   </button>
@@ -255,12 +255,12 @@ export default function PageViewerModal({
                       {copiedOcr ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
+                          <span className="text-emerald-400">कॉपी हो गया!</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5" />
-                          <span>Copy</span>
+                          <span>कॉपी</span>
                         </>
                       )}
                     </button>
@@ -274,7 +274,7 @@ export default function PageViewerModal({
                   rows={8}
                   value={ocrText}
                   onChange={(e) => setOcrText(e.target.value)}
-                  placeholder="Scanned text recognized from notes will appear here, or you can type key points manually to make this page searchable..."
+                  placeholder="नोट्स से पहचाना गया हिंदी/अंग्रेजी टेक्स्ट यहाँ दिखेगा, अथवा आप स्वयं मुख्य बिंदु टाइप कर सकते हैं ताकि यह पेज सर्च हो सके..."
                   className="w-full p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-slate-200 leading-relaxed focus:outline-none focus:border-blue-500 font-sans"
                 />
               </div>
@@ -282,13 +282,13 @@ export default function PageViewerModal({
               {/* Bookmark Note */}
               <div>
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                  Sudha's Revision Note
+                  सुधा का रिविजन नोट (रिमार्क)
                 </label>
                 <input
                   type="text"
                   value={bookmarkNote}
                   onChange={(e) => setBookmarkNote(e.target.value)}
-                  placeholder="e.g. Must revise before BPSC Prelims"
+                  placeholder="उदा. BPSC प्रारंभिक परीक्षा से पूर्व अवश्य दोहराएं"
                   className="w-full px-3 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -296,14 +296,14 @@ export default function PageViewerModal({
 
             <div className="pt-3 border-t border-slate-800 flex justify-between items-center">
               <span className="text-[11px] text-slate-500">
-                Filter: {page.filter || 'magic_color'}
+                फ़िल्टर: {page.filter || 'magic_color'}
               </span>
 
               <button
                 onClick={handleSaveOcrText}
                 className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow transition-colors"
               >
-                Save Changes
+                परिवर्तन सहेजें
               </button>
             </div>
           </div>

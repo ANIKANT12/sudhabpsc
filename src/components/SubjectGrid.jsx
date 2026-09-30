@@ -38,14 +38,16 @@ export default function SubjectGrid({
 
   const handleCreateSubject = (e) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    const primaryTitle = newHindiTitle.trim() || newTitle.trim();
+    if (!primaryTitle) return;
 
     onAddNewSubject({
       id: `subj-${Date.now()}`,
-      title: newTitle.trim(),
-      hindiTitle: newHindiTitle.trim() || newTitle.trim(),
+      title: primaryTitle,
+      hindiTitle: primaryTitle,
+      englishTitle: newTitle.trim() || primaryTitle,
       icon: newIcon || '📘',
-      description: newDescription.trim() || 'Custom BPSC study notes',
+      description: newDescription.trim() || 'BPSC अध्ययन नोट्स',
       color: 'from-blue-600 to-indigo-800',
       badgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
     });
@@ -67,16 +69,16 @@ export default function SubjectGrid({
           <div className="space-y-3 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Bihar Public Service Commission (BPSC) Prep</span>
+              <span>70वीं / 71वीं BPSC परीक्षा तैयारी</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-              Sudha's Digital BPSC Notebook
+              सुधा की डिजिटल BPSC नोटबुक
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Scan, auto-straighten, and organize handwritten notes. Download
-              chapter-wise or full-subject PDFs with automatic table of contents.
+              हस्तलिखित नोट्स को स्कैन करें, सीधा करें एवं विषय-वार डिजिटल लाइब्रेरी में सुरक्षित रखें।
+              एक क्लिक में अध्याय-वार एवं सम्पूर्ण विषय की रंगीन PDF डाउनलोड करें।
             </p>
           </div>
 
@@ -86,8 +88,8 @@ export default function SubjectGrid({
               onClick={() => onOpenScanner()}
               className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-2xl shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2.5 active:scale-95 transition-all"
             >
-              <Camera className="w-5 h-5" />
-              <span>Upload / Scan Notes</span>
+              <Camera className="w-5 h-5 text-blue-200" />
+              <span>नोट्स स्कैन / अपलोड करें</span>
             </button>
 
             <button
@@ -95,7 +97,7 @@ export default function SubjectGrid({
               className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-sm rounded-2xl flex items-center justify-center gap-2 transition-colors"
             >
               <Search className="w-4 h-4 text-slate-400" />
-              <span>Search Notes</span>
+              <span>नोट्स खोजें</span>
             </button>
           </div>
         </div>
@@ -107,7 +109,7 @@ export default function SubjectGrid({
               {subjects.length}
             </div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-              BPSC Subjects
+              कुल BPSC विषय
             </div>
           </div>
 
@@ -116,7 +118,7 @@ export default function SubjectGrid({
               {totalChapters}
             </div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-              Total Chapters
+              कुल अध्याय
             </div>
           </div>
 
@@ -125,7 +127,7 @@ export default function SubjectGrid({
               {totalPages}
             </div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-              Scanned Pages
+              स्कैन किए गए पृष्ठ
             </div>
           </div>
 
@@ -134,7 +136,7 @@ export default function SubjectGrid({
               {starredPages}
             </div>
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-              High Yield Notes
+              महत्वपूर्ण नोट्स
             </div>
           </div>
         </div>
@@ -144,13 +146,13 @@ export default function SubjectGrid({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-            <span>BPSC Subjects</span>
+            <span>BPSC अध्ययन विषय</span>
             <span className="text-xs px-2.5 py-0.5 bg-slate-800 text-slate-400 rounded-full font-mono border border-slate-700">
               {subjects.length}
             </span>
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Select a subject to view chapters, download subject PDFs, or scan new pages
+            अध्याय देखने, सम्पूर्ण विषय PDF डाउनलोड करने अथवा नए पृष्ठ जोड़ने के लिए विषय चुनें
           </p>
         </div>
 
@@ -159,7 +161,7 @@ export default function SubjectGrid({
           className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 hover:border-blue-500/40 text-xs sm:text-sm font-semibold rounded-xl transition-all"
         >
           <FolderPlus className="w-4 h-4" />
-          <span>New Subject</span>
+          <span>नया विषय जोड़ें</span>
         </button>
       </div>
 
@@ -169,6 +171,9 @@ export default function SubjectGrid({
           const subjChapters = chapters.filter((c) => c.subjectId === subj.id);
           const chIds = new Set(subjChapters.map((c) => c.id));
           const subjPages = activePages.filter((p) => chIds.has(p.chapterId));
+
+          const displayTitle = subj.hindiTitle || subj.title;
+          const displaySubtitle = subj.englishTitle || (subj.hindiTitle !== subj.title ? subj.title : '');
 
           return (
             <div
@@ -184,16 +189,18 @@ export default function SubjectGrid({
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
-                        {subj.title}
+                        {displayTitle}
                       </h4>
-                      <p className="text-xs text-amber-400/90 font-medium">
-                        {subj.hindiTitle}
-                      </p>
+                      {displaySubtitle && (
+                        <p className="text-xs text-slate-400 font-medium">
+                          {displaySubtitle}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/80">
-                    {subjChapters.length} Ch.
+                    {subjChapters.length} अध्याय
                   </span>
                 </div>
 
@@ -206,18 +213,12 @@ export default function SubjectGrid({
                 <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-blue-400" />
-                    <span>
-                      {subjChapters.length}{' '}
-                      {subjChapters.length === 1 ? 'Chapter' : 'Chapters'}
-                    </span>
+                    <span>{subjChapters.length} अध्याय</span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>
-                      {subjPages.length}{' '}
-                      {subjPages.length === 1 ? 'Page' : 'Pages'} Scanned
-                    </span>
+                    <span>{subjPages.length} पृष्ठ स्कैन</span>
                   </div>
                 </div>
               </div>
@@ -228,17 +229,17 @@ export default function SubjectGrid({
                   onClick={() => onDownloadSubjectPdf(subj)}
                   disabled={subjPages.length === 0}
                   className="flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-30 transition-colors p-1"
-                  title="Download All Chapters as One Subject PDF with Table of Contents"
+                  title="विषय की सम्पूर्ण PDF डाउनलोड करें"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Subject PDF</span>
+                  <span>सम्पूर्ण PDF</span>
                 </button>
 
                 <button
                   onClick={() => onSelectSubject(subj)}
                   className="px-3.5 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all"
                 >
-                  <span>Open Chapters</span>
+                  <span>अध्याय खोलें</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -252,20 +253,33 @@ export default function SubjectGrid({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-white">
             <h3 className="text-lg font-bold text-white mb-1">
-              Add New BPSC Subject
+              नया BPSC विषय जोड़ें
             </h3>
             <p className="text-xs text-slate-400 mb-4">
-              Create a custom subject notebook (e.g. Anthropology, Bihar Economics)
+              अपनी पसंद की नई नोटबुक बनाएं (उदा. बिहार का अर्थशास्त्र, एंथ्रोपोलॉजी)
             </p>
 
             <form onSubmit={handleCreateSubject} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Subject Title (English) *
+                  विषय का नाम (हिंदी में) *
                 </label>
                 <input
                   type="text"
                   required
+                  placeholder="उदा. बिहार का भूगोल एवं मानचित्र"
+                  value={newHindiTitle}
+                  onChange={(e) => setNewHindiTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  अंग्रेजी नाम (वैकल्पिक)
+                </label>
+                <input
+                  type="text"
                   placeholder="e.g. Bihar Geography & Mapping"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
@@ -275,22 +289,9 @@ export default function SubjectGrid({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Subject Title (Hindi)
+                  आइकन / इमोजी
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. बिहार का भूगोल"
-                  value={newHindiTitle}
-                  onChange={(e) => setNewHindiTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Icon Emoji
-                </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {['📜', '🏛️', '🌍', '⚖️', '💰', '🔬', '🌿', '📰', '📖', '🎯', '🗺️', '💡'].map(
                     (emoji) => (
                       <button
@@ -312,11 +313,11 @@ export default function SubjectGrid({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Short Description
+                  संक्षिप्त विवरण
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. High priority notes for BPSC 70th Prelims"
+                  placeholder="उदा. BPSC 70वीं प्रारंभिक एवं मुख्य परीक्षा हेतु महत्वपूर्ण नोट्स"
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
@@ -329,13 +330,13 @@ export default function SubjectGrid({
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2 text-xs text-slate-400 hover:text-white"
                 >
-                  Cancel
+                  रद्द करें
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow-lg"
                 >
-                  Create Subject
+                  विषय सहेजें
                 </button>
               </div>
             </form>

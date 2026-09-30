@@ -133,40 +133,78 @@ const DEFAULT_CHAPTERS = [
   },
 ];
 
+// Safe wrapper with timeout and localStorage fallback
+const dbGet = async (key) => {
+  try {
+    const val = await Promise.race([
+      get(key),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('IDB timeout')), 1200)
+      ),
+    ]);
+    if (val !== undefined && val !== null) return val;
+  } catch (e) {
+    console.warn(`IDB get ${key} note:`, e);
+  }
+  try {
+    const local = localStorage.getItem(key);
+    return local ? JSON.parse(local) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const dbSet = async (key, val) => {
+  try {
+    await set(key, val);
+  } catch (e) {
+    console.warn(`IDB set ${key} note:`, e);
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch (e) {
+    // quota exceeded or private mode
+  }
+};
+
 // Initialize Storage if empty
 export const initStorage = async () => {
-  const existingSubjects = await get(SUBJECTS_KEY);
-  if (!existingSubjects || existingSubjects.length === 0) {
-    await set(SUBJECTS_KEY, DEFAULT_SUBJECTS);
-  }
+  try {
+    const existingSubjects = await dbGet(SUBJECTS_KEY);
+    if (!existingSubjects || existingSubjects.length === 0) {
+      await dbSet(SUBJECTS_KEY, DEFAULT_SUBJECTS);
+    }
 
-  const existingChapters = await get(CHAPTERS_KEY);
-  if (!existingChapters || existingChapters.length === 0) {
-    await set(CHAPTERS_KEY, DEFAULT_CHAPTERS);
-  }
+    const existingChapters = await dbGet(CHAPTERS_KEY);
+    if (!existingChapters || existingChapters.length === 0) {
+      await dbSet(CHAPTERS_KEY, DEFAULT_CHAPTERS);
+    }
 
-  const existingPages = await get(PAGES_KEY);
-  if (!existingPages) {
-    await set(PAGES_KEY, []);
-  }
+    const existingPages = await dbGet(PAGES_KEY);
+    if (!existingPages) {
+      await dbSet(PAGES_KEY, []);
+    }
 
-  const existingSettings = await get(SETTINGS_KEY);
-  if (!existingSettings) {
-    await set(SETTINGS_KEY, {
-      defaultFilter: 'magic_color',
-      autoDetectCorners: true,
-      autoOcr: true,
-      highQualityPdf: true,
-      geminiApiKey: '',
-      pinLock: '',
-      isPinEnabled: false,
-    });
+    const existingSettings = await dbGet(SETTINGS_KEY);
+    if (!existingSettings) {
+      await dbSet(SETTINGS_KEY, {
+        defaultFilter: 'magic_color',
+        autoDetectCorners: true,
+        autoOcr: true,
+        highQualityPdf: true,
+        geminiApiKey: '',
+        pinLock: '',
+        isPinEnabled: false,
+      });
+    }
+  } catch (err) {
+    console.warn('initStorage safe fallback triggered:', err);
   }
 };
 
 // Subject Operations
 export const getSubjects = async () => {
-  const subjects = await get(SUBJECTS_KEY);
+  const subjects = await dbGet(SUBJECTS_KEY);
   return subjects || DEFAULT_SUBJECTS;
 };
 
@@ -178,20 +216,20 @@ export const saveSubject = async (subject) => {
   } else {
     subjects.push(subject);
   }
-  await set(SUBJECTS_KEY, subjects);
+  await dbSet(SUBJECTS_KEY, subjects);
   return subjects;
 };
 
 export const deleteSubject = async (subjectId) => {
   const subjects = await getSubjects();
   const updated = subjects.filter((s) => s.id !== subjectId);
-  await set(SUBJECTS_KEY, updated);
+  await dbSet(SUBJECTS_KEY, updated);
   return updated;
 };
 
 // Chapter Operations
 export const getChapters = async (subjectId = null) => {
-  const chapters = (await get(CHAPTERS_KEY)) || [];
+  const chapters = (await dbGet(CHAPTERS_KEY)) || [];
   if (subjectId) {
     return chapters.filter((c) => c.subjectId === subjectId);
   }
@@ -199,7 +237,7 @@ export const getChapters = async (subjectId = null) => {
 };
 
 export const saveChapter = async (chapter) => {
-  const chapters = (await get(CHAPTERS_KEY)) || [];
+  const chapters = (await dbGet(CHAPTERS_KEY)) || [];
   const index = chapters.findIndex((c) => c.id === chapter.id);
   const now = new Date().toISOString();
   if (index >= 0) {
@@ -212,28 +250,28 @@ export const saveChapter = async (chapter) => {
       updatedAt: now,
     });
   }
-  await set(CHAPTERS_KEY, chapters);
+  await dbSet(CHAPTERS_KEY, chapters);
   return chapters;
 };
 
 export const deleteChapter = async (chapterId) => {
-  const chapters = (await get(CHAPTERS_KEY)) || [];
+  const chapters = (await dbGet(CHAPTERS_KEY)) || [];
   const updated = chapters.filter((c) => c.id !== chapterId);
-  await set(CHAPTERS_KEY, updated);
+  await dbSet(CHAPTERS_KEY, updated);
 
   // Soft-delete pages belonging to this chapter
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const updatedPages = pages.map((p) =>
     p.chapterId === chapterId ? { ...p, isDeleted: true } : p
   );
-  await set(PAGES_KEY, updatedPages);
+  await dbSet(PAGES_KEY, updatedPages);
 
   return updated;
 };
 
 // Page Operations
 export const getPages = async (chapterId = null, includeDeleted = false) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   let filtered = pages;
   if (!includeDeleted) {
     filtered = filtered.filter((p) => !p.isDeleted);
@@ -245,22 +283,22 @@ export const getPages = async (chapterId = null, includeDeleted = false) => {
 };
 
 export const getAllStarredPages = async () => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   return pages.filter((p) => !p.isDeleted && p.isStarred);
 };
 
 export const getAllBookmarkedPages = async () => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   return pages.filter((p) => !p.isDeleted && p.isBookmarked);
 };
 
 export const getRecycleBinPages = async () => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   return pages.filter((p) => p.isDeleted);
 };
 
 export const savePage = async (page) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const index = pages.findIndex((p) => p.id === page.id);
   const now = new Date().toISOString();
 
@@ -282,12 +320,12 @@ export const savePage = async (page) => {
       isDeleted: false,
     });
   }
-  await set(PAGES_KEY, pages);
+  await dbSet(PAGES_KEY, pages);
   return pages;
 };
 
 export const saveMultiplePages = async (newPages) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const now = new Date().toISOString();
 
   for (const page of newPages) {
@@ -305,12 +343,12 @@ export const saveMultiplePages = async (newPages) => {
     });
   }
 
-  await set(PAGES_KEY, pages);
+  await dbSet(PAGES_KEY, pages);
   return pages;
 };
 
 export const softDeletePage = async (pageId) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const target = pages.find((p) => p.id === pageId);
   if (!target) return;
 
@@ -326,12 +364,12 @@ export const softDeletePage = async (pageId) => {
     p.pageNo = idx + 1;
   });
 
-  await set(PAGES_KEY, pages);
+  await dbSet(PAGES_KEY, pages);
   return pages;
 };
 
 export const restorePage = async (pageId) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const target = pages.find((p) => p.id === pageId);
   if (!target) return;
 
@@ -344,32 +382,32 @@ export const restorePage = async (pageId) => {
   );
   target.pageNo = activeChapterPages.length;
 
-  await set(PAGES_KEY, pages);
+  await dbSet(PAGES_KEY, pages);
   return pages;
 };
 
 export const permanentlyDeletePage = async (pageId) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const updated = pages.filter((p) => p.id !== pageId);
-  await set(PAGES_KEY, updated);
+  await dbSet(PAGES_KEY, updated);
   return updated;
 };
 
 export const reorderPagesInChapter = async (chapterId, reorderedPageIds) => {
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   reorderedPageIds.forEach((id, index) => {
     const p = pages.find((page) => page.id === id);
     if (p) {
       p.pageNo = index + 1;
     }
   });
-  await set(PAGES_KEY, pages);
+  await dbSet(PAGES_KEY, pages);
   return pages;
 };
 
 // Settings
 export const getSettings = async () => {
-  const s = await get(SETTINGS_KEY);
+  const s = await dbGet(SETTINGS_KEY);
   return (
     s || {
       defaultFilter: 'magic_color',
@@ -384,7 +422,7 @@ export const getSettings = async () => {
 };
 
 export const saveSettings = async (settings) => {
-  await set(SETTINGS_KEY, settings);
+  await dbSet(SETTINGS_KEY, settings);
   return settings;
 };
 

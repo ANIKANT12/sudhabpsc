@@ -73,26 +73,32 @@ export default function App() {
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Load Initial Data
+  // Load Initial Data with safe fallback
   const refreshData = async () => {
     setLoading(true);
-    await initStorage();
-    const loadedSubjects = await getSubjects();
-    const loadedChapters = await getChapters();
-    const loadedPages = await getPages(null, true); // include deleted for recycle bin count
-    const loadedSettings = await getSettings();
+    try {
+      await initStorage();
+      const loadedSubjects = await getSubjects();
+      const loadedChapters = await getChapters();
+      const loadedPages = await getPages(null, true);
+      const loadedSettings = await getSettings();
 
-    setSubjects(loadedSubjects);
-    setChapters(loadedChapters);
-    setPages(loadedPages);
-    setSettings(loadedSettings);
+      setSubjects(loadedSubjects || []);
+      setChapters(loadedChapters || []);
+      setPages(loadedPages || []);
+      setSettings(loadedSettings || {});
 
-    if (loadedSettings.isPinEnabled && loadedSettings.pinLock) {
-      setIsUnlocked(false);
-    } else {
+      if (loadedSettings?.isPinEnabled && loadedSettings?.pinLock) {
+        setIsUnlocked(false);
+      } else {
+        setIsUnlocked(true);
+      }
+    } catch (err) {
+      console.warn('Data load error, loading defaults:', err);
       setIsUnlocked(true);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {

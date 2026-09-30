@@ -34,6 +34,7 @@ export default function ScannerModal({
   preselectedSubjectId,
   preselectedChapterId,
   onSavePage,
+  onUpdatePage,
   onNavigateToChapter,
 }) {
   if (!isOpen) return null;
@@ -316,6 +317,9 @@ export default function ScannerModal({
   };
 
   const handlePointerDown = (e) => {
+    if (e.cancelable && e.touches) {
+      e.preventDefault();
+    }
     const coords = getCanvasCoords(e);
     const threshold = 0.08; // sensitivity radius
 
@@ -337,6 +341,9 @@ export default function ScannerModal({
 
   const handlePointerMove = (e) => {
     if (!activeCorner) return;
+    if (e.cancelable && e.touches) {
+      e.preventDefault();
+    }
     const coords = getCanvasCoords(e);
     const clampedX = Math.max(0.01, Math.min(0.99, coords.x));
     const clampedY = Math.max(0.01, Math.min(0.99, coords.y));
@@ -464,8 +471,8 @@ export default function ScannerModal({
       setTimeout(async () => {
         try {
           const text = await recognizeText(processedDataUrl || originalDataUrl);
-          if (text) {
-            // Background OCR complete
+          if (text && onUpdatePage) {
+            await onUpdatePage(pageId, { ocrText: text });
           }
         } catch (err) {
           console.warn('Background OCR pass note:', err);
@@ -473,7 +480,14 @@ export default function ScannerModal({
       }, 300);
 
       if (shouldScanNext) {
-        // Reset for next page scan while keeping subject & chapter locked
+        // Reset for next page scan while locking to this subject & chapter
+        setSelectedSubjectId(targetSubjectId);
+        setSelectedChapterId(targetChapterId);
+        setIsCreatingNewSubject(false);
+        setIsCreatingNewChapter(false);
+        setNewSubjectTitle('');
+        setNewChapterTitle('');
+
         setOriginalImageObj(null);
         setOriginalDataUrl('');
         setProcessedDataUrl('');

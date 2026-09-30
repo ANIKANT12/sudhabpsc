@@ -29,7 +29,7 @@ export default function BottomNav({ activeTab, setActiveTab, onOpenScanner }) {
         <div className="flex-1 flex justify-center -mt-5">
           <button
             onClick={() => onOpenScanner()}
-            className="w-13 h-13 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-500 p-0.5 shadow-xl shadow-blue-600/40 active:scale-95 transition-transform"
+            className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-500 p-0.5 shadow-xl shadow-blue-600/40 active:scale-95 transition-transform"
           >
             <div className="w-full h-full bg-blue-600 rounded-full flex flex-col items-center justify-center text-white">
               <Camera className="w-6 h-6" />

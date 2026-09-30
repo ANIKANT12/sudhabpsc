@@ -84,6 +84,24 @@ export default function SubjectDetailView({
             <Camera className="w-4 h-4" />
             <span>Scan to Subject</span>
           </button>
+
+          {onDeleteSubject && (
+            <button
+              onClick={() => {
+                if (
+                  confirm(
+                    `Are you sure you want to delete the entire subject "${subject.title}"? All chapters and scanned pages inside will be moved to the Recycle Bin.`
+                  )
+                ) {
+                  onDeleteSubject(subject.id);
+                }
+              }}
+              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+              title="Delete Subject"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 

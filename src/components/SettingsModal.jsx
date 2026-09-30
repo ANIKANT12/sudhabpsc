@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   Settings,
@@ -38,6 +38,15 @@ export default function SettingsModal({
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingZip, setIsExportingZip] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Synchronize settings state when modal opens or settings update
+  useEffect(() => {
+    if (settings) {
+      setGeminiKey(settings.geminiApiKey || '');
+      setPinLock(settings.pinLock || '');
+      setIsPinEnabled(!!settings.isPinEnabled);
+    }
+  }, [settings, isOpen]);
 
   const fileInputRef = useRef(null);
 
@@ -269,7 +278,7 @@ export default function SettingsModal({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-900/90">
           <span className="text-[11px] text-slate-500">
-            Sudha BPSC Notes v1.0.0 • Netlify Ready
+            Sudha BPSC Notes v1.0.0 • PWA & Vercel Ready
           </span>
 
           <div className="flex items-center gap-2">

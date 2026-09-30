@@ -58,11 +58,19 @@ export default function AiAssistantModal({
     }
   };
 
+  // Reset cache whenever chapter changes so each chapter gets its own notes
   useEffect(() => {
-    if (isOpen) {
+    setContent({});
+    setSelectedAnswers({});
+    setActiveFlashcard(0);
+    setIsFlipped(false);
+  }, [chapter?.id]);
+
+  useEffect(() => {
+    if (isOpen && chapter?.id) {
       fetchTabContent(activeTab);
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, activeTab, chapter?.id]);
 
   const handleCopySummary = () => {
     if (!content.summary) return;

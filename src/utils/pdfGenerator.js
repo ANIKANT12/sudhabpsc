@@ -9,6 +9,23 @@ const A4_WIDTH = 210;
 const A4_HEIGHT = 297;
 
 /**
+ * Renders Unicode text (such as Devanagari Hindi) to an offscreen canvas
+ * so jsPDF can embed it crisply without font corruption
+ */
+const renderUnicodeTextToCanvas = (text, fontSpec, fillStyle, width = 600, height = 70) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.font = fontSpec;
+  ctx.fillStyle = fillStyle;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, width / 2, height / 2);
+  return canvas;
+};
+
+/**
  * Generates and downloads a single Chapter PDF with all pages in order
  */
 export const downloadChapterPDF = async (
@@ -193,9 +210,18 @@ export const downloadSubjectPDF = async (
   pdf.text(subject.title.toUpperCase(), A4_WIDTH / 2, 95, { align: 'center' });
 
   if (subject.hindiTitle) {
-    pdf.setFontSize(14);
-    pdf.setTextColor(203, 213, 225);
-    pdf.text(subject.hindiTitle, A4_WIDTH / 2, 108, { align: 'center' });
+    try {
+      const hCanvas = renderUnicodeTextToCanvas(
+        subject.hindiTitle,
+        'bold 28px "Segoe UI", system-ui, -apple-system, sans-serif',
+        '#cbd5e1',
+        600,
+        70
+      );
+      pdf.addImage(hCanvas, 'PNG', (A4_WIDTH - 120) / 2, 102, 120, 14);
+    } catch (e) {
+      console.warn('Cover page Hindi canvas fallback:', e);
+    }
   }
 
   // Divider

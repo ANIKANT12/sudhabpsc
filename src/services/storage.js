@@ -224,6 +224,18 @@ export const deleteSubject = async (subjectId) => {
   const subjects = await getSubjects();
   const updated = subjects.filter((s) => s.id !== subjectId);
   await dbSet(SUBJECTS_KEY, updated);
+
+  // Soft-delete all chapters and pages belonging to this subject
+  const chapters = (await dbGet(CHAPTERS_KEY)) || [];
+  const updatedChapters = chapters.filter((c) => c.subjectId !== subjectId);
+  await dbSet(CHAPTERS_KEY, updatedChapters);
+
+  const pages = (await dbGet(PAGES_KEY)) || [];
+  const updatedPages = pages.map((p) =>
+    p.subjectId === subjectId ? { ...p, isDeleted: true } : p
+  );
+  await dbSet(PAGES_KEY, updatedPages);
+
   return updated;
 };
 
@@ -350,7 +362,7 @@ export const saveMultiplePages = async (newPages) => {
 export const softDeletePage = async (pageId) => {
   const pages = (await dbGet(PAGES_KEY)) || [];
   const target = pages.find((p) => p.id === pageId);
-  if (!target) return;
+  if (!target) return pages;
 
   target.isDeleted = true;
   target.deletedAt = new Date().toISOString();
@@ -371,7 +383,7 @@ export const softDeletePage = async (pageId) => {
 export const restorePage = async (pageId) => {
   const pages = (await dbGet(PAGES_KEY)) || [];
   const target = pages.find((p) => p.id === pageId);
-  if (!target) return;
+  if (!target) return pages;
 
   target.isDeleted = false;
   delete target.deletedAt;
@@ -430,7 +442,7 @@ export const saveSettings = async (settings) => {
 export const exportCompleteBackup = async () => {
   const subjects = await getSubjects();
   const chapters = await getChapters();
-  const pages = (await get(PAGES_KEY)) || [];
+  const pages = (await dbGet(PAGES_KEY)) || [];
   const settings = await getSettings();
 
   const backupData = {
@@ -461,12 +473,12 @@ export const importBackupData = async (jsonString) => {
     throw new Error('Invalid backup file format');
   }
 
-  await set(SUBJECTS_KEY, data.subjects);
-  await set(CHAPTERS_KEY, data.chapters);
-  await set(PAGES_KEY, data.pages);
+  await dbSet(SUBJECTS_KEY, data.subjects);
+  await dbSet(CHAPTERS_KEY, data.chapters);
+  await dbSet(PAGES_KEY, data.pages);
   if (data.settings) {
     const current = await getSettings();
-    await set(SETTINGS_KEY, { ...current, ...data.settings });
+    await dbSet(SETTINGS_KEY, { ...current, ...data.settings });
   }
   return true;
 };

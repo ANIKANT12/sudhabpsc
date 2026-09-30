@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   ChevronLeft,
@@ -12,8 +12,10 @@ import {
   Sliders,
   Image as ImageIcon,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
-import { rotateCanvas } from '../utils/imageProcessor';
+import { rotateCanvas, loadImage } from '../utils/imageProcessor';
+import { recognizeText } from '../services/ocrService';
 
 export default function PageViewerModal({
   page,
@@ -28,9 +30,19 @@ export default function PageViewerModal({
 
   const [viewMode, setViewMode] = useState('processed'); // 'processed' | 'original'
   const [copiedOcr, setCopiedOcr] = useState(false);
-  const [ocrText, setOcrText] = useState(page.ocrText || '');
-  const [bookmarkNote, setBookmarkNote] = useState(page.bookmarkNote || '');
+  const [ocrText, setOcrText] = useState(page?.ocrText || '');
+  const [bookmarkNote, setBookmarkNote] = useState(page?.bookmarkNote || '');
   const [isEditingOcr, setIsEditingOcr] = useState(false);
+  const [isOcrRunning, setIsOcrRunning] = useState(false);
+
+  // Synchronize state whenever page changes
+  useEffect(() => {
+    if (page) {
+      setOcrText(page.ocrText || '');
+      setBookmarkNote(page.bookmarkNote || '');
+      setViewMode('processed');
+    }
+  }, [page?.id]);
 
   const totalPages = pages.length;
 
@@ -46,12 +58,27 @@ export default function PageViewerModal({
     setIsEditingOcr(false);
   };
 
+  const handleRunOcr = async () => {
+    const src = page.processedDataUrl || page.originalDataUrl;
+    if (!src) return;
+    setIsOcrRunning(true);
+    try {
+      const text = await recognizeText(src);
+      if (text) {
+        setOcrText(text);
+        onUpdatePage(page.id, { ocrText: text });
+      }
+    } catch (e) {
+      console.warn('OCR on demand failed:', e);
+    } finally {
+      setIsOcrRunning(false);
+    }
+  };
+
   const handleRotate = async () => {
     const nextRot = ((page.rotation || 0) + 90) % 360;
     try {
-      const img = new Image();
-      img.src = page.processedDataUrl || page.originalDataUrl;
-      await new Promise((r) => (img.onload = r));
+      const img = await loadImage(page.processedDataUrl || page.originalDataUrl);
 
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
@@ -66,7 +93,7 @@ export default function PageViewerModal({
         rotation: nextRot,
       });
     } catch (e) {
-      console.error(e);
+      console.error('Rotate error:', e);
     }
   };
 
@@ -200,24 +227,45 @@ export default function PageViewerModal({
                   </h4>
                 </div>
 
-                {ocrText && (
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={handleCopyOcr}
-                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                    onClick={handleRunOcr}
+                    disabled={isOcrRunning}
+                    className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-500/10 border border-purple-500/20 disabled:opacity-50"
+                    title="Run OCR to extract text from this page"
                   >
-                    {copiedOcr ? (
+                    {isOcrRunning ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-emerald-400">Copied!</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Reading...</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy Text</span>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{ocrText ? 'Re-OCR' : 'Extract OCR'}</span>
                       </>
                     )}
                   </button>
-                )}
+
+                  {ocrText && (
+                    <button
+                      onClick={handleCopyOcr}
+                      className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                    >
+                      {copiedOcr ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* OCR Text Box */}

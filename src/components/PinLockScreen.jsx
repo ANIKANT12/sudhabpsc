@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Delete } from 'lucide-react';
 
 export default function PinLockScreen({ expectedPin, onUnlock }) {
@@ -29,6 +29,19 @@ export default function PinLockScreen({ expectedPin, onUnlock }) {
     setPin((prev) => prev.slice(0, -1));
     setError(false);
   };
+
+  // Keyboard navigation for laptops and desktop
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key >= '0' && e.key <= '9') {
+        handleDigit(e.key);
+      } else if (e.key === 'Backspace') {
+        handleDelete();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pin, expectedPin]);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 text-white select-none">

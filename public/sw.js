@@ -1,5 +1,5 @@
-// Sudha BPSC Notes Service Worker v2 - Network First Strategy
-const CACHE_NAME = 'sudha-bpsc-v2';
+// Sudha BPSC Notes Service Worker v3 - Network First Strategy with Offline Resilience
+const CACHE_NAME = 'sudha-bpsc-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -26,9 +26,17 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // For HTML documents / navigations: ALWAYS fetch from network first so new builds load immediately
+  // and update cache on success for offline support
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
       fetch(event.request)
+        .then((networkRes) => {
+          if (networkRes && networkRes.status === 200) {
+            const resClone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+          }
+          return networkRes;
+        })
         .catch(() => {
           return caches.match('/index.html') || caches.match('/');
         })

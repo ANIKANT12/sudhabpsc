@@ -65,7 +65,7 @@ export default function InstallAppBanner() {
   if (!showBanner || isInstalled) return null;
 
   return (
-    <div className="fixed top-18 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-40 animate-in slide-in-from-top-4 duration-300">
+    <div className="fixed top-20 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-40 animate-in slide-in-from-top-4 duration-300">
       <div className="p-3.5 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white rounded-2xl shadow-2xl border border-blue-400/40 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">

@@ -17,7 +17,7 @@ import {
   Clock,
   CheckCircle2,
 } from 'lucide-react';
-import { rotateCanvas, applyFilter } from '../utils/imageProcessor';
+import { rotateCanvas, applyFilter, loadImage } from '../utils/imageProcessor';
 
 export default function ChapterView({
   chapter,
@@ -59,9 +59,7 @@ export default function ChapterView({
   const handleRotatePage = async (page) => {
     const nextRot = ((page.rotation || 0) + 90) % 360;
     try {
-      const img = new Image();
-      img.src = page.processedDataUrl || page.originalDataUrl;
-      await new Promise((r) => (img.onload = r));
+      const img = await loadImage(page.processedDataUrl || page.originalDataUrl);
 
       const canvas = document.createElement('canvas');
       canvas.width = img.width;

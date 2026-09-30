@@ -30,6 +30,7 @@ import {
   reorderPagesInChapter,
   saveSettings,
   deleteChapter,
+  deleteSubject,
 } from './services/storage';
 
 import { downloadSubjectPDF, downloadAllNotesZip } from './utils/pdfGenerator';
@@ -226,6 +227,17 @@ export default function App() {
     setActiveTab(selectedSubject ? 'subject_detail' : 'home');
   };
 
+  const handleDeleteSubject = async (subjectId) => {
+    const updatedSubjs = await deleteSubject(subjectId);
+    setSubjects(updatedSubjs);
+    const updatedChaps = await getChapters();
+    setChapters(updatedChaps);
+    const updatedPages = await getPages(null, true);
+    setPages(updatedPages);
+    setSelectedSubject(null);
+    setActiveTab('home');
+  };
+
   // PDF Handlers
   const handleOpenChapterPdfModal = (chap, subj, chapPages) => {
     setPdfChapter(chap);
@@ -263,7 +275,10 @@ export default function App() {
 
   // Search Jump handler
   const handleSelectSearchResult = (result) => {
-    setSelectedSubject(result.subject);
+    if (!result?.chapter || !result?.page) return;
+    const targetSubj =
+      result.subject || subjects.find((s) => s.id === result.chapter.subjectId);
+    setSelectedSubject(targetSubj || null);
     setSelectedChapter(result.chapter);
     setActiveTab('chapter');
     const chPages = pages.filter(
@@ -372,9 +387,7 @@ export default function App() {
               const updated = await saveChapter(chapData);
               setChapters(updated);
             }}
-            onDeleteSubject={async (subjId) => {
-              // optional
-            }}
+            onDeleteSubject={handleDeleteSubject}
           />
         )}
 
@@ -488,6 +501,7 @@ export default function App() {
         preselectedSubjectId={scannerSubjectId}
         preselectedChapterId={scannerChapterId}
         onSavePage={handleSaveScannedPage}
+        onUpdatePage={handleUpdatePage}
         onNavigateToChapter={handleNavigateToChapter}
       />
 

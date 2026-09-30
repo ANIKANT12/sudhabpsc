@@ -11,6 +11,7 @@ import {
   FileText,
   Star,
   Search,
+  Eye,
 } from 'lucide-react';
 
 export default function SubjectGrid({
@@ -18,6 +19,7 @@ export default function SubjectGrid({
   chapters,
   pages,
   onSelectSubject,
+  onOpenPageViewer,
   onOpenScanner,
   onOpenSearch,
   onDownloadSubjectPdf,
@@ -141,6 +143,70 @@ export default function SubjectGrid({
           </div>
         </div>
       </div>
+
+      {/* Recently Uploaded / Scanned Pages Section */}
+      {activePages.length > 0 && (
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>हाल ही में स्कैन / अपलोड किए गए पृष्ठ</span>
+                  <span className="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">
+                    {activePages.length} पृष्ठ उपलब्ध
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  फोन अथवा कंप्यूटर से जोड़े गए नवीनतम नोट्स — किसी भी पृष्ठ पर क्लिक करके तुरंत पढ़ें
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 pt-1">
+            {activePages.slice(-6).reverse().map((page, idx) => {
+              const chap = chapters.find((c) => c.id === page.chapterId);
+              const chapPages = activePages.filter((p) => p.chapterId === page.chapterId);
+              const pageIdx = chapPages.findIndex((p) => p.id === page.id);
+
+              return (
+                <div
+                  key={page.id}
+                  onClick={() => onOpenPageViewer && onOpenPageViewer(page, chapPages, pageIdx >= 0 ? pageIdx : 0)}
+                  className="group relative bg-slate-950 border border-slate-800 hover:border-blue-500 rounded-2xl overflow-hidden cursor-pointer shadow transition-all hover:scale-[1.03] flex flex-col"
+                >
+                  <div className="aspect-[3/4] overflow-hidden bg-slate-900 flex items-center justify-center p-1.5 relative">
+                    <img
+                      src={page.processedDataUrl || page.originalDataUrl}
+                      alt="नोट्स पृष्ठ"
+                      className="w-full h-full object-contain rounded"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <span className="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-semibold flex items-center gap-1 shadow">
+                        <Eye className="w-3 h-3" />
+                        <span>देखें</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-2 bg-slate-900/90 border-t border-slate-800 text-[11px]">
+                    <div className="font-bold text-white truncate">
+                      {chap?.hindiTitle || chap?.title || 'हस्तलिखित नोट्स'}
+                    </div>
+                    <div className="text-[10px] text-emerald-400 flex items-center justify-between mt-0.5">
+                      <span>पृष्ठ {page.pageNo || idx + 1}</span>
+                      <span className="text-slate-500">☁️ सिंक</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Subjects Header */}
       <div className="flex items-center justify-between">

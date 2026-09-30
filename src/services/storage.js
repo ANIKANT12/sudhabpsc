@@ -155,25 +155,28 @@ const DEFAULT_CHAPTERS = [
   },
 ];
 
-// Safe wrapper with timeout and localStorage fallback
+// Safe wrapper with IndexedDB and localStorage fallback
 const dbGet = async (key) => {
   try {
     const val = await Promise.race([
       get(key),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('IDB timeout')), 1200)
+        setTimeout(() => reject(new Error('IDB timeout')), 10000)
       ),
     ]);
     if (val !== undefined && val !== null) return val;
   } catch (e) {
     console.warn(`IDB get ${key} note:`, e);
   }
-  try {
-    const local = localStorage.getItem(key);
-    return local ? JSON.parse(local) : null;
-  } catch (e) {
-    return null;
+  if (key !== PAGES_KEY) {
+    try {
+      const local = localStorage.getItem(key);
+      return local ? JSON.parse(local) : null;
+    } catch (e) {
+      return null;
+    }
   }
+  return null;
 };
 
 const dbSet = async (key, val) => {
@@ -182,10 +185,13 @@ const dbSet = async (key, val) => {
   } catch (e) {
     console.warn(`IDB set ${key} note:`, e);
   }
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
-  } catch (e) {
-    // quota exceeded or private mode
+  // Never mirror image collections (PAGES_KEY) to 5MB localStorage
+  if (key !== PAGES_KEY) {
+    try {
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {
+      // quota exceeded or private mode
+    }
   }
 };
 

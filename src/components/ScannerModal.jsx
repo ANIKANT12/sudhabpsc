@@ -461,7 +461,7 @@ export default function ScannerModal({
         id: pageId,
         subjectId: targetSubjectId,
         chapterId: targetChapterId,
-        originalDataUrl,
+        originalDataUrl: processedDataUrl || originalDataUrl,
         processedDataUrl: processedDataUrl || originalDataUrl,
         cropCorners: corners,
         filter: selectedFilter,

@@ -128,17 +128,33 @@ export default function App() {
         setIsUnlocked(true);
       }
 
-      // Background Two-Way Cloud Synchronization
+      // Two-Way Cloud Synchronization
       if (loadedSettings?.autoCloudSync !== false) {
-        syncWithCloud()
-          .then((res) => {
-            if (res?.pages) {
+        if (!loadedPages || loadedPages.length === 0) {
+          // New device or computer with no local cache yet:
+          // Await cloud sync so notes immediately appear on first load!
+          try {
+            const res = await syncWithCloud();
+            if (res?.pages && res.pages.length > 0) {
               setPages(res.pages);
               if (res.subjects) setSubjects(res.subjects);
               if (res.chapters) setChapters(res.chapters);
             }
-          })
-          .catch((e) => console.warn('Background initial sync error:', e));
+          } catch (e) {
+            console.warn('Initial cloud sync error:', e);
+          }
+        } else {
+          // If we already have local pages cached, sync in background
+          syncWithCloud()
+            .then((res) => {
+              if (res?.pages) {
+                setPages(res.pages);
+                if (res.subjects) setSubjects(res.subjects);
+                if (res.chapters) setChapters(res.chapters);
+              }
+            })
+            .catch((e) => console.warn('Background initial sync error:', e));
+        }
       }
     } catch (err) {
       console.warn('Data load error, loading defaults:', err);
@@ -468,6 +484,7 @@ export default function App() {
               setSelectedSubject(subj);
               setActiveTab('subject_detail');
             }}
+            onOpenPageViewer={handleOpenPageViewer}
             onOpenScanner={handleOpenScanner}
             onOpenSearch={() => setIsSearchOpen(true)}
             onDownloadSubjectPdf={handleDownloadFullSubjectPdf}

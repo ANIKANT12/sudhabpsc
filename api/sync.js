@@ -66,24 +66,36 @@ export default async function handler(req, res) {
         [code]
       );
 
-      const pages = pageRows.map((r) => ({
-        id: r.id,
-        subjectId: r.subject_id,
-        chapterId: r.chapter_id,
-        pageNo: r.page_no,
-        originalDataUrl: r.original_data_url,
-        processedDataUrl: r.processed_data_url,
-        cropCorners: r.crop_corners,
-        filter: r.filter,
-        rotation: r.rotation,
-        bookmarkNote: r.bookmark_note,
-        ocrText: r.ocr_text,
-        isStarred: r.is_starred,
-        isBookmarked: r.is_bookmarked,
-        isDeleted: r.is_deleted,
-        createdAt: r.created_at,
-        updatedAt: r.updated_at,
-      }));
+      const pages = pageRows.map((r) => {
+        const img = r.processed_data_url || r.original_data_url || '';
+        let parsedCorners = {};
+        if (typeof r.crop_corners === 'object' && r.crop_corners !== null) {
+          parsedCorners = r.crop_corners;
+        } else if (typeof r.crop_corners === 'string' && r.crop_corners.trim()) {
+          try {
+            parsedCorners = JSON.parse(r.crop_corners);
+          } catch (e) {}
+        }
+
+        return {
+          id: r.id,
+          subjectId: r.subject_id,
+          chapterId: r.chapter_id,
+          pageNo: r.page_no || 1,
+          originalDataUrl: img,
+          processedDataUrl: img,
+          cropCorners: parsedCorners,
+          filter: r.filter || 'magic_color',
+          rotation: r.rotation || 0,
+          bookmarkNote: r.bookmark_note || '',
+          ocrText: r.ocr_text || '',
+          isStarred: !!r.is_starred,
+          isBookmarked: !!r.is_bookmarked,
+          isDeleted: !!r.is_deleted,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        };
+      });
 
       res.status(200).json({
         success: true,
@@ -142,6 +154,7 @@ export default async function handler(req, res) {
 
       // Upsert single page if provided (fast incremental upload)
       if (singlePage && singlePage.id) {
+        const pageImg = singlePage.processedDataUrl || singlePage.originalDataUrl || '';
         await sql.query(
           `INSERT INTO bpsc_pages (
             id, sync_code, subject_id, chapter_id, page_no,
@@ -152,6 +165,7 @@ export default async function handler(req, res) {
             subject_id = EXCLUDED.subject_id,
             chapter_id = EXCLUDED.chapter_id,
             page_no = EXCLUDED.page_no,
+            original_data_url = EXCLUDED.original_data_url,
             processed_data_url = EXCLUDED.processed_data_url,
             crop_corners = EXCLUDED.crop_corners,
             filter = EXCLUDED.filter,
@@ -168,8 +182,8 @@ export default async function handler(req, res) {
             singlePage.subjectId,
             singlePage.chapterId,
             singlePage.pageNo || 1,
-            singlePage.originalDataUrl || '',
-            singlePage.processedDataUrl || singlePage.originalDataUrl || '',
+            pageImg,
+            pageImg,
             JSON.stringify(singlePage.cropCorners || {}),
             singlePage.filter || 'magic_color',
             singlePage.rotation || 0,
@@ -186,6 +200,7 @@ export default async function handler(req, res) {
       if (pages && Array.isArray(pages)) {
         for (const p of pages) {
           if (!p.id) continue;
+          const pImg = p.processedDataUrl || p.originalDataUrl || '';
           await sql.query(
             `INSERT INTO bpsc_pages (
               id, sync_code, subject_id, chapter_id, page_no,
@@ -196,6 +211,7 @@ export default async function handler(req, res) {
               subject_id = EXCLUDED.subject_id,
               chapter_id = EXCLUDED.chapter_id,
               page_no = EXCLUDED.page_no,
+              original_data_url = EXCLUDED.original_data_url,
               processed_data_url = EXCLUDED.processed_data_url,
               crop_corners = EXCLUDED.crop_corners,
               filter = EXCLUDED.filter,
@@ -212,8 +228,8 @@ export default async function handler(req, res) {
               p.subjectId,
               p.chapterId,
               p.pageNo || 1,
-              p.originalDataUrl || '',
-              p.processedDataUrl || p.originalDataUrl || '',
+              pImg,
+              pImg,
               JSON.stringify(p.cropCorners || {}),
               p.filter || 'magic_color',
               p.rotation || 0,

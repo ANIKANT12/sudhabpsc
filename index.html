@@ -22,14 +22,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white min-h-screen">
-    <div id="root"></div>
+  <body class="bg-slate-950 text-slate-100 antialiased selection:bg-blue-600 selection:text-white min-h-screen">
+    <div id="root">
+      <div style="min-height:100vh;background:#020617;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ffffff;font-family:sans-serif;gap:16px;">
+        <div style="font-size:36px;">📚</div>
+        <div style="font-weight:600;font-size:14px;color:#94a3b8;">Loading Sudha's BPSC Notes...</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Register service worker if supported
+      // Automatically update service worker on load to clear stale cache
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(err => {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            reg.update();
+          }).catch(function(err) {
             console.log('SW registration note:', err);
           });
         });

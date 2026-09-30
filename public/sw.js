@@ -1,18 +1,7 @@
-// Sudha BPSC Notes Service Worker
-const CACHE_NAME = 'sudha-bpsc-notes-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/icon.svg',
-  '/manifest.json'
-];
+// Sudha BPSC Notes Service Worker v2 - Network First Strategy
+const CACHE_NAME = 'sudha-bpsc-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -32,20 +21,33 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let IndexedDB and non-GET requests bypass SW
   if (event.request.method !== 'GET') return;
-  
+
+  const url = new URL(event.request.url);
+
+  // For HTML documents / navigations: ALWAYS fetch from network first so new builds load immediately
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match('/index.html') || caches.match('/');
+        })
+    );
+    return;
+  }
+
+  // For JS / CSS assets (already uniquely content-hashed by Vite):
+  // Fetch from network, cache on success
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        return networkResponse;
-      }).catch(() => {
-        // Offline fallback
-        return caches.match('/index.html');
-      });
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((networkRes) => {
+        if (networkRes && networkRes.status === 200 && networkRes.type === 'basic') {
+          const resClone = networkRes.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+        }
+        return networkRes;
+      }).catch(() => cached);
     })
   );
 });

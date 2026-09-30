@@ -381,6 +381,11 @@ export const saveMultiplePages = async (newPages) => {
   return pages;
 };
 
+export const replaceAllPages = async (allPages) => {
+  await dbSet(PAGES_KEY, allPages);
+  return allPages;
+};
+
 export const softDeletePage = async (pageId) => {
   const pages = (await dbGet(PAGES_KEY)) || [];
   const target = pages.find((p) => p.id === pageId);

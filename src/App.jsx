@@ -96,10 +96,10 @@ export default function App() {
   const handleTriggerSync = async () => {
     try {
       const res = await syncWithCloud();
-      if (res?.hasChanges) {
+      if (res?.pages) {
+        setPages(res.pages);
         if (res.subjects) setSubjects(res.subjects);
         if (res.chapters) setChapters(res.chapters);
-        if (res.pages) setPages(res.pages);
       }
       return res;
     } catch (err) {
@@ -132,10 +132,10 @@ export default function App() {
       if (loadedSettings?.autoCloudSync !== false) {
         syncWithCloud()
           .then((res) => {
-            if (res?.hasChanges) {
+            if (res?.pages) {
+              setPages(res.pages);
               if (res.subjects) setSubjects(res.subjects);
               if (res.chapters) setChapters(res.chapters);
-              if (res.pages) setPages(res.pages);
             }
           })
           .catch((e) => console.warn('Background initial sync error:', e));
@@ -161,9 +161,18 @@ export default function App() {
     };
     window.addEventListener('visibilitychange', handleSyncOnVisible);
     window.addEventListener('focus', handleSyncOnVisible);
+
+    // Periodic live sync poll every 15s so phone uploads appear on PC in real-time
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible' && settings?.autoCloudSync !== false) {
+        handleTriggerSync();
+      }
+    }, 15000);
+
     return () => {
       window.removeEventListener('visibilitychange', handleSyncOnVisible);
       window.removeEventListener('focus', handleSyncOnVisible);
+      clearInterval(interval);
     };
   }, [settings?.autoCloudSync, settings?.syncCode]);
 

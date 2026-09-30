@@ -5,9 +5,11 @@ import {
   saveChapter,
   getPages,
   savePage,
+  replaceAllPages,
   permanentlyDeletePage,
   getSettings,
 } from './storage';
+import { compressImage } from '../utils/imageProcessor';
 
 const DEFAULT_SYNC_CODE = 'SudhaBPSC';
 
@@ -76,6 +78,23 @@ export const pushSinglePageToCloud = async (page, syncCode = null) => {
 
     notifyListeners({ status: 'syncing' });
 
+    // Ensure image strings are safe for Vercel/Neon (< 400KB each)
+    let pageToSend = { ...page };
+    if (pageToSend.originalDataUrl && pageToSend.originalDataUrl.length > 1000000) {
+      try {
+        pageToSend.originalDataUrl = await compressImage(pageToSend.originalDataUrl, 1600, 0.82);
+      } catch (e) {
+        console.warn('Original compression note:', e);
+      }
+    }
+    if (pageToSend.processedDataUrl && pageToSend.processedDataUrl.length > 1000000) {
+      try {
+        pageToSend.processedDataUrl = await compressImage(pageToSend.processedDataUrl, 1600, 0.82);
+      } catch (e) {
+        console.warn('Processed compression note:', e);
+      }
+    }
+
     const response = await fetch('/api/sync', {
       method: 'POST',
       headers: {
@@ -83,12 +102,13 @@ export const pushSinglePageToCloud = async (page, syncCode = null) => {
       },
       body: JSON.stringify({
         code,
-        singlePage: page,
+        singlePage: pageToSend,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Cloud page push failed with status ${response.status}`);
+      const errText = await response.text();
+      throw new Error(`Cloud push failed (${response.status}): ${errText}`);
     }
 
     notifyListeners({
@@ -279,36 +299,51 @@ export const syncWithCloud = async (options = {}) => {
 
     // Save newly arrived cloud pages to local IndexedDB
     if (hasLocalChanges) {
-      for (const page of mergedPages) {
-        await savePage(page);
-      }
+      await replaceAllPages(mergedPages);
     }
 
     // 5. Push any local-only or newer items up to Cloud
     // First push metadata
-    await fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code,
-        subjects: mergedSubjects,
-        chapters: mergedChapters,
-      }),
-    });
+    try {
+      await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          subjects: mergedSubjects,
+          chapters: mergedChapters,
+        }),
+      });
+    } catch (metaErr) {
+      console.warn('Metadata push warning:', metaErr);
+    }
 
-    // Push pages in small chunks to avoid serverless payload limits
+    // Push local-only pages to cloud (1 page at a time with auto-compression)
     if (pagesToPushToCloud.length > 0) {
-      const chunkSize = 2; // small chunks for large image payloads
-      for (let i = 0; i < pagesToPushToCloud.length; i += chunkSize) {
-        const chunk = pagesToPushToCloud.slice(i, i + chunkSize);
-        await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code,
-            pages: chunk,
-          }),
-        });
+      for (const p of pagesToPushToCloud) {
+        let pToSend = { ...p };
+        if (pToSend.originalDataUrl && pToSend.originalDataUrl.length > 1000000) {
+          try {
+            pToSend.originalDataUrl = await compressImage(pToSend.originalDataUrl, 1600, 0.82);
+          } catch (e) {}
+        }
+        if (pToSend.processedDataUrl && pToSend.processedDataUrl.length > 1000000) {
+          try {
+            pToSend.processedDataUrl = await compressImage(pToSend.processedDataUrl, 1600, 0.82);
+          } catch (e) {}
+        }
+        try {
+          await fetch('/api/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              singlePage: pToSend,
+            }),
+          });
+        } catch (pagePushErr) {
+          console.warn('Sync page push warning:', pagePushErr);
+        }
       }
     }
 

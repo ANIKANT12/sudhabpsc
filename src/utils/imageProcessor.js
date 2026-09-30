@@ -295,8 +295,8 @@ export const warpPerspective = (sourceImage, corners, targetWidth, targetHeight)
   const outW = Math.round(targetWidth || Math.max(topWidth, bottomWidth));
   const outH = Math.round(targetHeight || Math.max(leftHeight, rightHeight));
 
-  // Cap max resolution to 1800x2400 for snappy performance while preserving crisp text
-  const maxDim = 2000;
+  // Cap max resolution to 1600px for high-definition clarity while keeping payload under 350KB
+  const maxDim = 1600;
   const scale = Math.min(1, maxDim / Math.max(outW, outH));
   const finalW = Math.round(outW * scale);
   const finalH = Math.round(outH * scale);
@@ -477,4 +477,54 @@ export const rotateCanvas = (canvas, degrees = 90) => {
   ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
 
   return rotated;
+};
+
+/**
+ * Compresses and downscales any image/canvas to a lightweight HD format (max 1600px, JPEG 0.82)
+ * Ensures photos taken on 12MP/48MP phones fit easily within cloud limits (< 400KB).
+ */
+export const compressImage = async (dataUrlOrFile, maxDim = 1600, quality = 0.82) => {
+  try {
+    let img;
+    if (typeof dataUrlOrFile === 'string') {
+      img = await loadImage(dataUrlOrFile);
+    } else {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(dataUrlOrFile);
+      });
+      img = await loadImage(dataUrl);
+    }
+
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+
+    let targetW = w;
+    let targetH = h;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) {
+        targetW = maxDim;
+        targetH = Math.round((h * maxDim) / w);
+      } else {
+        targetH = maxDim;
+        targetW = Math.round((w * maxDim) / h);
+      }
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+
+    return canvas.toDataURL('image/jpeg', quality);
+  } catch (err) {
+    console.warn('Image compression fallback:', err);
+    if (typeof dataUrlOrFile === 'string') return dataUrlOrFile;
+    throw err;
+  }
 };

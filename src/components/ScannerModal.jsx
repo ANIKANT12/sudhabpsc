@@ -23,6 +23,7 @@ import {
   applyFilter,
   rotateCanvas,
   checkImageQuality,
+  compressImage,
 } from '../utils/imageProcessor';
 import { recognizeText } from '../services/ocrService';
 
@@ -158,27 +159,38 @@ export default function ScannerModal({
     if (!videoRef.current) return;
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    const origW = video.videoWidth || 1280;
+    const origH = video.videoHeight || 720;
+    const maxDim = 1600;
+    const scale = Math.min(1, maxDim / Math.max(origW, origH));
+    canvas.width = Math.round(origW * scale);
+    canvas.height = Math.round(origH * scale);
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     stopCamera();
     handleLoadedImage(dataUrl);
   };
 
   // Handle uploaded file (images or camera file input)
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      handleLoadedImage(event.target.result);
-    };
-    reader.readAsDataURL(file);
+    setIsProcessing(true);
+    try {
+      // Auto downscale 12MP/48MP phone camera photos to HD 1600px (~300KB)
+      const compressedDataUrl = await compressImage(file, 1600, 0.82);
+      handleLoadedImage(compressedDataUrl);
+    } catch (err) {
+      console.error('File load error:', err);
+      alert('फोटो लोड करने में त्रुटि। कृपया कोई अन्य फ़ाइल चुनें।');
+      setIsProcessing(false);
+    }
   };
 
   // Process newly loaded image
@@ -375,7 +387,7 @@ export default function ScannerModal({
 
       // 3. Apply selected filter
       const filtered = applyFilter(finalCanvas, selectedFilter);
-      setProcessedDataUrl(filtered.toDataURL('image/jpeg', 0.92));
+      setProcessedDataUrl(filtered.toDataURL('image/jpeg', 0.85));
       setStep('filter_review');
     } catch (err) {
       console.error('Warp transform error:', err);
@@ -394,7 +406,7 @@ export default function ScannerModal({
       const warped = warpPerspective(originalImageObj, corners);
       const rotated = currentRotation !== 0 ? rotateCanvas(warped, currentRotation) : warped;
       const filtered = applyFilter(rotated, filterType);
-      setProcessedDataUrl(filtered.toDataURL('image/jpeg', 0.92));
+      setProcessedDataUrl(filtered.toDataURL('image/jpeg', 0.85));
     } catch (e) {
       console.error(e);
     }
@@ -409,7 +421,7 @@ export default function ScannerModal({
       const warped = warpPerspective(originalImageObj, corners);
       const rotated = rotateCanvas(warped, nextRot);
       const filtered = applyFilter(rotated, selectedFilter);
-      setProcessedDataUrl(filtered.toDataURL('image/jpeg', 0.92));
+      setProcessedDataUrl(filtered.toDataURL('image/jpeg', 0.85));
     } catch (e) {
       console.error(e);
     }

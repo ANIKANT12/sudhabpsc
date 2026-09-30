@@ -437,12 +437,16 @@ export const getSettings = async () => {
     geminiApiKey: resolveDefaultKey(),
     pinLock: '',
     isPinEnabled: false,
+    syncCode: 'SudhaBPSC',
+    autoCloudSync: true,
   };
   if (!s) return defaults;
   return {
     ...defaults,
     ...s,
     geminiApiKey: s.geminiApiKey || defaults.geminiApiKey,
+    syncCode: (s.syncCode || defaults.syncCode).trim(),
+    autoCloudSync: s.autoCloudSync !== undefined ? s.autoCloudSync : defaults.autoCloudSync,
   };
 };
 

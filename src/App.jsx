@@ -34,6 +34,13 @@ import {
 } from './services/storage';
 
 import { downloadSubjectPDF, downloadAllNotesZip } from './utils/pdfGenerator';
+import {
+  syncWithCloud,
+  pushSinglePageToCloud,
+  deletePageFromCloud,
+  pushMetadataToCloud,
+  subscribeSyncStatus,
+} from './services/syncService';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -41,6 +48,11 @@ export default function App() {
   const [chapters, setChapters] = useState([]);
   const [pages, setPages] = useState([]);
   const [settings, setSettings] = useState({});
+  const [syncState, setSyncState] = useState({
+    status: 'idle',
+    lastSyncedAt: null,
+    error: null,
+  });
 
   // Navigation state
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'subjects' | 'starred' | 'bookmarks' | 'ai'
@@ -74,6 +86,27 @@ export default function App() {
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  // Subscribe to live sync status changes
+  useEffect(() => {
+    const unsubscribe = subscribeSyncStatus((st) => setSyncState(st));
+    return () => unsubscribe();
+  }, []);
+
+  // Trigger Cloud Synchronization
+  const handleTriggerSync = async () => {
+    try {
+      const res = await syncWithCloud();
+      if (res?.hasChanges) {
+        if (res.subjects) setSubjects(res.subjects);
+        if (res.chapters) setChapters(res.chapters);
+        if (res.pages) setPages(res.pages);
+      }
+      return res;
+    } catch (err) {
+      console.warn('Manual sync error:', err);
+    }
+  };
+
   // Load Initial Data with safe fallback
   const refreshData = async () => {
     setLoading(true);
@@ -94,6 +127,19 @@ export default function App() {
       } else {
         setIsUnlocked(true);
       }
+
+      // Background Two-Way Cloud Synchronization
+      if (loadedSettings?.autoCloudSync !== false) {
+        syncWithCloud()
+          .then((res) => {
+            if (res?.hasChanges) {
+              if (res.subjects) setSubjects(res.subjects);
+              if (res.chapters) setChapters(res.chapters);
+              if (res.pages) setPages(res.pages);
+            }
+          })
+          .catch((e) => console.warn('Background initial sync error:', e));
+      }
     } catch (err) {
       console.warn('Data load error, loading defaults:', err);
       setIsUnlocked(true);
@@ -105,6 +151,21 @@ export default function App() {
   useEffect(() => {
     refreshData();
   }, []);
+
+  // Auto-sync when user returns to tab (e.g. phone scan uploaded, switched to PC)
+  useEffect(() => {
+    const handleSyncOnVisible = () => {
+      if (document.visibilityState === 'visible' && settings?.autoCloudSync !== false) {
+        handleTriggerSync();
+      }
+    };
+    window.addEventListener('visibilitychange', handleSyncOnVisible);
+    window.addEventListener('focus', handleSyncOnVisible);
+    return () => {
+      window.removeEventListener('visibilitychange', handleSyncOnVisible);
+      window.removeEventListener('focus', handleSyncOnVisible);
+    };
+  }, [settings?.autoCloudSync, settings?.syncCode]);
 
   // Global Keyboard Shortcut (Ctrl+K or Cmd+K for search)
   useEffect(() => {
@@ -175,6 +236,27 @@ export default function App() {
     if (targetSubjObj) setSelectedSubject(targetSubjObj);
     if (targetChapObj) setSelectedChapter(targetChapObj);
     setActiveTab('chapter');
+
+    // Background push to Cloud
+    if (settings?.autoCloudSync !== false) {
+      const savedPageObj = updatedPages.find(
+        (p) =>
+          p.id === pageData.id ||
+          (p.chapterId === finalChapterId && p.originalDataUrl === pageData.originalDataUrl)
+      ) || { ...pageData, subjectId: finalSubjectId, chapterId: finalChapterId };
+      pushSinglePageToCloud(savedPageObj, settings?.syncCode);
+      if (newSubjectTitle || newChapterTitle) {
+        pushMetadataToCloud(
+          targetSubjObj
+            ? [...subjects.filter((s) => s.id !== targetSubjObj.id), targetSubjObj]
+            : subjects,
+          targetChapObj
+            ? [...chapters.filter((c) => c.id !== targetChapObj.id), targetChapObj]
+            : chapters,
+          settings?.syncCode
+        );
+      }
+    }
   };
 
   const handleNavigateToChapter = (chapterId) => {
@@ -198,21 +280,36 @@ export default function App() {
     if (viewingPage && viewingPage.id === pageId) {
       setViewingPage(updated);
     }
+
+    if (settings?.autoCloudSync !== false) {
+      pushSinglePageToCloud(updated, settings?.syncCode);
+    }
   };
 
   const handleDeletePage = async (pageId) => {
     const updatedPages = await softDeletePage(pageId);
     setPages(updatedPages);
+    const target = updatedPages.find((p) => p.id === pageId);
+    if (target && settings?.autoCloudSync !== false) {
+      pushSinglePageToCloud(target, settings?.syncCode);
+    }
   };
 
   const handleRestorePage = async (pageId) => {
     const updatedPages = await restorePage(pageId);
     setPages(updatedPages);
+    const target = updatedPages.find((p) => p.id === pageId);
+    if (target && settings?.autoCloudSync !== false) {
+      pushSinglePageToCloud(target, settings?.syncCode);
+    }
   };
 
   const handlePermanentDeletePage = async (pageId) => {
     const updatedPages = await permanentlyDeletePage(pageId);
     setPages(updatedPages);
+    if (settings?.autoCloudSync !== false) {
+      deletePageFromCloud(pageId, settings?.syncCode);
+    }
   };
 
   const handleReorderPages = async (chapterId, pageIds) => {
@@ -225,6 +322,9 @@ export default function App() {
     setChapters(updated);
     setSelectedChapter(null);
     setActiveTab(selectedSubject ? 'subject_detail' : 'home');
+    if (settings?.autoCloudSync !== false) {
+      pushMetadataToCloud(subjects, updated, settings?.syncCode);
+    }
   };
 
   const handleDeleteSubject = async (subjectId) => {
@@ -236,6 +336,9 @@ export default function App() {
     setPages(updatedPages);
     setSelectedSubject(null);
     setActiveTab('home');
+    if (settings?.autoCloudSync !== false) {
+      pushMetadataToCloud(updatedSubjs, updatedChaps, settings?.syncCode);
+    }
   };
 
   // PDF Handlers
@@ -336,6 +439,8 @@ export default function App() {
         onOpenAllDownloads={() => setIsSettingsOpen(true)}
         starredCount={starredCount}
         bookmarkedCount={bookmarkedCount}
+        syncState={syncState}
+        onTriggerSync={handleTriggerSync}
       />
 
       {/* PWA Install Banner */}
@@ -567,11 +672,16 @@ export default function App() {
         onSaveSettings={async (newSettings) => {
           await saveSettings(newSettings);
           setSettings(newSettings);
+          if (newSettings?.syncCode !== settings?.syncCode) {
+            handleTriggerSync();
+          }
         }}
         subjects={subjects}
         chapters={chapters}
         pages={pages}
         onDataResetOrImported={refreshData}
+        syncState={syncState}
+        onManualSync={handleTriggerSync}
       />
     </div>
   );

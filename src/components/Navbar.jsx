@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   BookOpen,
   Camera,
@@ -9,6 +8,9 @@ import {
   Settings,
   Download,
   Plus,
+  Cloud,
+  CloudCheck,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function Navbar({
@@ -21,6 +23,8 @@ export default function Navbar({
   onOpenAllDownloads,
   starredCount = 0,
   bookmarkedCount = 0,
+  syncState = null,
+  onTriggerSync = null,
 }) {
   return (
     <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-white transition-all shadow-md">
@@ -130,6 +134,40 @@ export default function Navbar({
           >
             <Trash2 className="w-5 h-5" />
           </button>
+
+          {/* Cloud Sync Status / Manual Sync Button */}
+          {onTriggerSync && (
+            <button
+              onClick={onTriggerSync}
+              className={`p-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                syncState?.status === 'syncing'
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  : syncState?.status === 'error'
+                  ? 'text-rose-400 hover:bg-rose-500/10'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+              title={
+                syncState?.status === 'syncing'
+                  ? 'Syncing with Neon Cloud...'
+                  : syncState?.status === 'error'
+                  ? `Sync error: ${syncState?.error || 'Failed'}. Tap to retry.`
+                  : syncState?.lastSyncedAt
+                  ? `Neon Cloud Synced • Click to sync now`
+                  : 'Cloud Sync • Click to sync notes between phone & computer'
+              }
+            >
+              {syncState?.status === 'syncing' ? (
+                <RefreshCw className="w-5 h-5 animate-spin text-blue-400" />
+              ) : syncState?.status === 'error' ? (
+                <Cloud className="w-5 h-5 text-rose-400" />
+              ) : (
+                <CloudCheck className="w-5 h-5 text-emerald-400" />
+              )}
+              <span className="hidden xl:inline text-xs font-medium text-slate-300">
+                {syncState?.status === 'syncing' ? 'Syncing...' : 'Cloud Synced'}
+              </span>
+            </button>
+          )}
 
           {/* Settings */}
           <button

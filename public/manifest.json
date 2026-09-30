@@ -1,0 +1,17 @@
+{
+  "name": "Sudha BPSC Notes - Personal Digital Notebook & Scanner",
+  "short_name": "Sudha BPSC",
+  "description": "Personal BPSC Notes Organizer, CamScanner and PDF Generator for Sudha",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

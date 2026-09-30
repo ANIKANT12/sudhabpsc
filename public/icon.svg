@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="128" fill="url(#grad)" />
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+  </defs>
+  <!-- Book / Notes Symbol -->
+  <path d="M128 140C128 126.745 138.745 116 152 116H340C366.51 116 388 137.49 388 164V364C388 377.255 377.255 388 364 388H152C138.745 388 128 377.255 128 364V140Z" fill="#ffffff" fill-opacity="0.15" />
+  <path d="M148 128H344C361.673 128 376 142.327 376 160V372H148V128Z" fill="#ffffff" />
+  <path d="M128 144H148V388H128C119.163 388 112 380.837 112 372V160C112 151.163 119.163 144 128 144Z" fill="#cbd5e1" />
+  <!-- Scanner Beam -->
+  <rect x="176" y="180" width="168" height="12" rx="6" fill="#3b82f6" />
+  <rect x="176" y="216" width="130" height="10" rx="5" fill="#94a3b8" />
+  <rect x="176" y="246" width="150" height="10" rx="5" fill="#94a3b8" />
+  <rect x="176" y="276" width="110" height="10" rx="5" fill="#94a3b8" />
+  <!-- Star badge -->
+  <circle cx="340" cy="336" r="32" fill="#f59e0b" />
+  <path d="M340 316L344.9 326.5L356.5 328L348 336.1L350.2 347.5L340 342L329.8 347.5L332 336.1L323.5 328L335.1 326.5L340 316Z" fill="#ffffff" />
+</svg>

@@ -218,9 +218,19 @@ export const syncWithCloud = async (options = {}) => {
 
     // 1. Fetch from cloud
     const cloudData = await fetchCloudNotes(code);
-    const cloudSubjects = cloudData?.subjects || [];
-    const cloudChapters = cloudData?.chapters || [];
-    const cloudPages = cloudData?.pages || [];
+    let cloudSubjects = cloudData?.subjects || [];
+    if (typeof cloudSubjects === 'string') {
+      try { cloudSubjects = JSON.parse(cloudSubjects); } catch (e) { cloudSubjects = []; }
+    }
+    if (!Array.isArray(cloudSubjects)) cloudSubjects = [];
+
+    let cloudChapters = cloudData?.chapters || [];
+    if (typeof cloudChapters === 'string') {
+      try { cloudChapters = JSON.parse(cloudChapters); } catch (e) { cloudChapters = []; }
+    }
+    if (!Array.isArray(cloudChapters)) cloudChapters = [];
+
+    const cloudPages = Array.isArray(cloudData?.pages) ? cloudData.pages : [];
 
     let hasLocalChanges = false;
 
@@ -228,7 +238,7 @@ export const syncWithCloud = async (options = {}) => {
     const subjectMap = new Map();
     localSubjects.forEach((s) => subjectMap.set(s.id, s));
     cloudSubjects.forEach((cs) => {
-      if (!subjectMap.has(cs.id)) {
+      if (cs && cs.id && !subjectMap.has(cs.id)) {
         subjectMap.set(cs.id, cs);
         hasLocalChanges = true;
       }
@@ -244,6 +254,7 @@ export const syncWithCloud = async (options = {}) => {
     const chapterMap = new Map();
     localChapters.forEach((c) => chapterMap.set(c.id, c));
     cloudChapters.forEach((cc) => {
+      if (!cc || !cc.id) return;
       if (!chapterMap.has(cc.id)) {
         chapterMap.set(cc.id, cc);
         hasLocalChanges = true;
@@ -251,8 +262,15 @@ export const syncWithCloud = async (options = {}) => {
         const local = chapterMap.get(cc.id);
         const cloudUpdated = new Date(cc.updatedAt || 0).getTime();
         const localUpdated = new Date(local.updatedAt || 0).getTime();
+
+        // Preserve AI Study Notes if one side has it and the other doesn't
+        const mergedAiNotes = cc.aiStudyNotes || local.aiStudyNotes || null;
+
         if (cloudUpdated > localUpdated) {
-          chapterMap.set(cc.id, cc);
+          chapterMap.set(cc.id, { ...cc, aiStudyNotes: mergedAiNotes });
+          hasLocalChanges = true;
+        } else if (mergedAiNotes && !local.aiStudyNotes) {
+          chapterMap.set(cc.id, { ...local, aiStudyNotes: mergedAiNotes });
           hasLocalChanges = true;
         }
       }

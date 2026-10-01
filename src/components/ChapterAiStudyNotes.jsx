@@ -44,8 +44,14 @@ export default function ChapterAiStudyNotes({
     if (notes.sections) {
       notes.sections.forEach((sec, idx) => {
         text += `### ${sec.title}\n`;
-        text += `**आपकी कॉपी से:**\n${(sec.sourceNotes || []).join('\n')}\n\n`;
-        text += `**BPSC मूल्य संवर्धन:**\n${(sec.bpscEnrichment || []).join('\n')}\n\n`;
+        const srcLines = Array.isArray(sec.sourceNotes)
+          ? sec.sourceNotes.join('\n')
+          : sec.sourceNotes || '';
+        const enrichLines = Array.isArray(sec.bpscEnrichment)
+          ? sec.bpscEnrichment.join('\n')
+          : sec.bpscEnrichment || '';
+        text += `**आपकी कॉपी से:**\n${srcLines}\n\n`;
+        text += `**BPSC मूल्य संवर्धन:**\n${enrichLines}\n\n`;
         if (sec.bpscHighYield) text += `> ${sec.bpscHighYield}\n\n`;
       });
     }
@@ -61,13 +67,26 @@ export default function ChapterAiStudyNotes({
     if (notes.biharSpecial) {
       text += `## बिहार विशेष संदर्भ\n`;
       notes.biharSpecial.forEach((b) => {
-        text += `- **${b.name}** (${b.place}): ${b.role}\n`;
+        text += `- **${b.name}** (${b.place || ''}): ${b.role || ''}\n`;
       });
     }
 
-    navigator.clipboard?.writeText(text);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (e) {
+      console.warn('Clipboard copy fallback:', e);
+    }
   };
 
   const metrics = notes.dashboardMetrics || {

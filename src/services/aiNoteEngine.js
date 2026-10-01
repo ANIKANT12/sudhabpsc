@@ -319,8 +319,22 @@ async function callGeminiMultimodal({
       const data = await response.json();
       const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (rawText) {
-        const parsed = JSON.parse(rawText);
-        if (parsed.sections) {
+        let parsed = null;
+        try {
+          const cleanText = rawText.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+          parsed = JSON.parse(cleanText);
+        } catch (err) {
+          const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch (e) {
+              console.warn('Regex fallback parse error:', e);
+            }
+          }
+        }
+
+        if (parsed && (parsed.sections || parsed.executiveSummary)) {
           return {
             ...parsed,
             metadata: {

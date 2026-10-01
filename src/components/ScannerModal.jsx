@@ -448,7 +448,7 @@ export default function ScannerModal({
           targetChapterId = existing.id;
         } else {
           targetChapterId = `chap-${Date.now()}`;
-          chapterTitleToCreate = 'Chapter 1: Scanned Notes';
+          chapterTitleToCreate = 'अध्याय 1: हस्तलिखित नोट्स';
         }
       } else if (isCreatingNewChapter && newChapterTitle.trim()) {
         targetChapterId = `chap-${Date.now()}`;
@@ -461,7 +461,7 @@ export default function ScannerModal({
         id: pageId,
         subjectId: targetSubjectId,
         chapterId: targetChapterId,
-        originalDataUrl: processedDataUrl || originalDataUrl,
+        originalDataUrl: originalDataUrl || processedDataUrl,
         processedDataUrl: processedDataUrl || originalDataUrl,
         cropCorners: corners,
         filter: selectedFilter,

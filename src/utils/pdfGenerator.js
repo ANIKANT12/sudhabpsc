@@ -502,6 +502,19 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
   return curY + lineHeight;
 }
 
+// Polyfill roundRect for older mobile browsers & WebViews
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r = 8) {
+    const radius = typeof r === 'number' ? r : (Array.isArray(r) ? r[0] : 8);
+    this.moveTo(x + radius, y);
+    this.arcTo(x + w, y, x + w, y + h, radius);
+    this.arcTo(x + w, y + h, x, y + h, radius);
+    this.arcTo(x, y + h, x, y, radius);
+    this.arcTo(x, y, x + w, y, radius);
+    return this;
+  };
+}
+
 /**
  * Helper to create an A4 Canvas
  */

@@ -65,9 +65,22 @@ export default function PageViewerModal({
 
   const handleCopyOcr = () => {
     if (!ocrText) return;
-    navigator.clipboard.writeText(ocrText);
-    setCopiedOcr(true);
-    setTimeout(() => setCopiedOcr(false), 2000);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(ocrText);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = ocrText;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedOcr(true);
+      setTimeout(() => setCopiedOcr(false), 2000);
+    } catch (e) {
+      console.warn('Copy OCR fallback failed:', e);
+    }
   };
 
   const handleSaveOcrText = () => {

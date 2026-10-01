@@ -238,16 +238,23 @@ export function SectionAttributionCard({ section, index }) {
             <span>आपकी कॉपी से (From Your Notes)</span>
           </div>
           <ul className="space-y-1.5">
-            {section.sourceNotes && section.sourceNotes.length > 0 ? (
-              section.sourceNotes.map((pt, pIdx) => (
-                <li key={pIdx} className="text-xs text-slate-200 flex items-start gap-2">
-                  <span className="text-emerald-400 mt-0.5">•</span>
-                  <span>{pt}</span>
-                </li>
-              ))
-            ) : (
-              <li className="text-xs text-slate-400 italic">हस्तलिखित नोट्स से संकलित।</li>
-            )}
+            {(() => {
+              const srcNotes = Array.isArray(section.sourceNotes)
+                ? section.sourceNotes
+                : typeof section.sourceNotes === 'string'
+                ? [section.sourceNotes]
+                : [];
+              return srcNotes.length > 0 ? (
+                srcNotes.map((pt, pIdx) => (
+                  <li key={pIdx} className="text-xs text-slate-200 flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">•</span>
+                    <span>{pt}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-xs text-slate-400 italic">हस्तलिखित नोट्स से संकलित।</li>
+              );
+            })()}
           </ul>
         </div>
 
@@ -258,16 +265,23 @@ export function SectionAttributionCard({ section, index }) {
             <span>BPSC मूल्य संवर्धन (Syllabus Context)</span>
           </div>
           <ul className="space-y-1.5">
-            {section.bpscEnrichment && section.bpscEnrichment.length > 0 ? (
-              section.bpscEnrichment.map((pt, pIdx) => (
-                <li key={pIdx} className="text-xs text-slate-200 flex items-start gap-2">
-                  <span className="text-blue-400 mt-0.5">✦</span>
-                  <span>{pt}</span>
-                </li>
-              ))
-            ) : (
-              <li className="text-xs text-slate-400 italic">मानक BPSC संदर्भ।</li>
-            )}
+            {(() => {
+              const enrichNotes = Array.isArray(section.bpscEnrichment)
+                ? section.bpscEnrichment
+                : typeof section.bpscEnrichment === 'string'
+                ? [section.bpscEnrichment]
+                : [];
+              return enrichNotes.length > 0 ? (
+                enrichNotes.map((pt, pIdx) => (
+                  <li key={pIdx} className="text-xs text-slate-200 flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">✦</span>
+                    <span>{pt}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-xs text-slate-400 italic">मानक BPSC संदर्भ।</li>
+              );
+            })()}
           </ul>
         </div>
       </div>
@@ -364,19 +378,26 @@ export function MainsAnswerFrameworkCard({ framework }) {
       )}
 
       <div className="space-y-3">
-        {framework.structure.map((part, pIdx) => (
-          <div key={pIdx} className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 space-y-1.5">
-            <h5 className="text-xs font-bold text-purple-300">{part.part}</h5>
-            <ul className="space-y-1">
-              {part.points?.map((pt, idx) => (
-                <li key={idx} className="text-xs text-slate-300 flex items-start gap-1.5">
-                  <span className="text-purple-400">•</span>
-                  <span>{pt}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {(Array.isArray(framework.structure) ? framework.structure : []).map((part, pIdx) => {
+          const pts = Array.isArray(part.points)
+            ? part.points
+            : typeof part.points === 'string'
+            ? [part.points]
+            : [];
+          return (
+            <div key={pIdx} className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 space-y-1.5">
+              <h5 className="text-xs font-bold text-purple-300">{part.part}</h5>
+              <ul className="space-y-1">
+                {pts.map((pt, idx) => (
+                  <li key={idx} className="text-xs text-slate-300 flex items-start gap-1.5">
+                    <span className="text-purple-400">•</span>
+                    <span>{pt}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

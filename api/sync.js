@@ -56,8 +56,16 @@ export default async function handler(req, res) {
       let subjects = null;
       let chapters = null;
       for (const row of storeRows) {
-        if (row.key === `${code}:subjects`) subjects = row.data;
-        if (row.key === `${code}:chapters`) chapters = row.data;
+        let val = row.data;
+        if (typeof val === 'string') {
+          try {
+            val = JSON.parse(val);
+          } catch (e) {
+            console.warn('Metadata JSON parse fallback:', e);
+          }
+        }
+        if (row.key === `${code}:subjects`) subjects = val;
+        if (row.key === `${code}:chapters`) chapters = val;
       }
 
       // Fetch pages

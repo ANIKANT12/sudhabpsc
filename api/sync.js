@@ -105,6 +105,48 @@ export default async function handler(req, res) {
         };
       });
 
+      if (!Array.isArray(chapters)) chapters = [];
+      const knownChapterIds = new Set(chapters.map((c) => c.id));
+      let recoveredAny = false;
+
+      for (const p of pages) {
+        if (p.chapterId && !knownChapterIds.has(p.chapterId)) {
+          const subTitle =
+            p.subjectId === 'subj-geography'
+              ? 'बिहार एवं भारत का भूगोल'
+              : p.subjectId === 'subj-history'
+              ? 'आधुनिक भारत एवं बिहार का इतिहास'
+              : 'हस्तलिखित नोट्स';
+          const newChap = {
+            id: p.chapterId,
+            subjectId: p.subjectId || 'subj-geography',
+            chapterNo: chapters.filter((c) => c.subjectId === p.subjectId).length + 1,
+            title: subTitle,
+            hindiTitle: subTitle,
+            tags: ['BPSC', 'भूगोल', 'हस्तलिखित नोट्स'],
+            description: `${subTitle} के स्कैन किए गए पृष्ठ संग्रह`,
+            createdAt: p.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          chapters.push(newChap);
+          knownChapterIds.add(p.chapterId);
+          recoveredAny = true;
+        }
+      }
+
+      // Persist recovered chapters back to store
+      if (recoveredAny) {
+        try {
+          await sql.query(
+            `INSERT INTO bpsc_sync_store (key, data, updated_at) VALUES ($1, $2, NOW())
+             ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
+            [`${code}:chapters`, JSON.stringify(chapters)]
+          );
+        } catch (e) {
+          console.warn('Auto-recovered chapter save note:', e);
+        }
+      }
+
       res.status(200).json({
         success: true,
         code,

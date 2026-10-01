@@ -272,17 +272,14 @@ export default function App() {
           (p.chapterId === finalChapterId && p.originalDataUrl === pageData.originalDataUrl)
       ) || { ...pageData, subjectId: finalSubjectId, chapterId: finalChapterId };
       pushSinglePageToCloud(savedPageObj, settings?.syncCode);
-      if (newSubjectTitle || newChapterTitle) {
-        pushMetadataToCloud(
-          targetSubjObj
-            ? [...subjects.filter((s) => s.id !== targetSubjObj.id), targetSubjObj]
-            : subjects,
-          targetChapObj
-            ? [...chapters.filter((c) => c.id !== targetChapObj.id), targetChapObj]
-            : chapters,
-          settings?.syncCode
-        );
-      }
+      // Always ensure cloud metadata contains the chapter and subject
+      const currentSubjects = targetSubjObj
+        ? [...subjects.filter((s) => s.id !== targetSubjObj.id), targetSubjObj]
+        : subjects;
+      const currentChapters = targetChapObj
+        ? [...chapters.filter((c) => c.id !== targetChapObj.id), targetChapObj]
+        : chapters;
+      pushMetadataToCloud(currentSubjects, currentChapters, settings?.syncCode);
     }
   };
 

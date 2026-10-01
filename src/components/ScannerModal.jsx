@@ -73,6 +73,7 @@ export default function ScannerModal({
   const [processedDataUrl, setProcessedDataUrl] = useState('');
   const [pageNote, setPageNote] = useState('');
   const [sessionPagesScanned, setSessionPagesScanned] = useState(0);
+  const [batchProgress, setBatchProgress] = useState(null);
 
   // Dragging state for corners
   const [activeCorner, setActiveCorner] = useState(null);
@@ -177,9 +178,120 @@ export default function ScannerModal({
 
   // Handle uploaded file (images or camera file input)
   const handleFileChange = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
 
+    const files = Array.from(fileList);
+
+    // Multiple photos selected: process as batch
+    if (files.length > 1) {
+      setIsProcessing(true);
+      setBatchProgress({
+        current: 0,
+        total: files.length,
+        message: `${files.length} फोटो लोड हो रहे हैं...`,
+      });
+
+      try {
+        let targetSubjectId = selectedSubjectId || subjects[0]?.id || 'subj-history';
+        let targetChapterId = selectedChapterId;
+        let chapterTitleToCreate = null;
+
+        if (isCreatingNewSubject && newSubjectTitle.trim()) {
+          targetSubjectId = `subj-${Date.now()}`;
+        }
+
+        if (!targetChapterId && !isCreatingNewChapter) {
+          const existing = chapters.find((c) => c.subjectId === targetSubjectId);
+          if (existing) {
+            targetChapterId = existing.id;
+          } else {
+            targetChapterId = `chap-${Date.now()}`;
+            chapterTitleToCreate = 'अध्याय 1: हस्तलिखित नोट्स';
+          }
+        } else if (isCreatingNewChapter && newChapterTitle.trim()) {
+          targetChapterId = `chap-${Date.now()}`;
+          chapterTitleToCreate = newChapterTitle.trim();
+        }
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          setBatchProgress({
+            current: i + 1,
+            total: files.length,
+            message: `पृष्ठ ${i + 1} / ${files.length} को HD में प्रोसेस व सहेजा जा रहा है...`,
+          });
+
+          // Compress to HD (1600px, 0.82)
+          const compressedDataUrl = await compressImage(file, 1600, 0.82);
+
+          // Auto-enhance with document magic color filter
+          let enhancedDataUrl = compressedDataUrl;
+          try {
+            const img = await loadImage(compressedDataUrl);
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth || img.width;
+            c.height = img.naturalHeight || img.height;
+            c.getContext('2d').drawImage(img, 0, 0);
+            const filtered = applyFilter(c, 'magic_color');
+            enhancedDataUrl = filtered.toDataURL('image/jpeg', 0.85);
+          } catch (filterErr) {
+            console.warn('Auto filter fallback:', filterErr);
+          }
+
+          const pageId = `page-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+          const newPage = {
+            id: pageId,
+            subjectId: targetSubjectId,
+            chapterId: targetChapterId,
+            originalDataUrl: compressedDataUrl,
+            processedDataUrl: enhancedDataUrl,
+            cropCorners: { tl: { x: 0, y: 0 }, tr: { x: 1, y: 0 }, br: { x: 1, y: 1 }, bl: { x: 0, y: 1 } },
+            filter: 'magic_color',
+            rotation: 0,
+            bookmarkNote: '',
+            ocrText: '',
+            isStarred: false,
+            isBookmarked: false,
+          };
+
+          await onSavePage(newPage, {
+            newSubjectTitle: isCreatingNewSubject && i === 0 ? newSubjectTitle : null,
+            newChapterTitle: i === 0 ? chapterTitleToCreate : null,
+          });
+
+          // Trigger OCR in background for each page
+          setTimeout(async () => {
+            try {
+              const text = await recognizeText(enhancedDataUrl || compressedDataUrl);
+              if (text && onUpdatePage) {
+                await onUpdatePage(pageId, { ocrText: text });
+              }
+            } catch (err) {
+              console.warn('OCR pass note:', err);
+            }
+          }, 300);
+
+          await new Promise((r) => setTimeout(r, 40));
+        }
+
+        setBatchProgress(null);
+        setIsProcessing(false);
+        stopCamera();
+        onClose();
+        if (targetChapterId && onNavigateToChapter) {
+          onNavigateToChapter(targetChapterId);
+        }
+      } catch (batchErr) {
+        console.error('Batch upload error:', batchErr);
+        alert('बैच फोटो अपलोड में त्रुटि हुई। कृपया पुनः प्रयास करें।');
+        setBatchProgress(null);
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // Single photo upload
     const file = files[0];
     setIsProcessing(true);
     try {
@@ -527,8 +639,34 @@ export default function ScannerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col max-h-[94vh] overflow-hidden text-white animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col max-h-[94vh] overflow-hidden text-white animate-in fade-in zoom-in-95 duration-200">
         
+        {/* Multi-Photo Batch Progress Overlay */}
+        {batchProgress && (
+          <div className="absolute inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center mb-4">
+              <RefreshCw className="w-8 h-8 animate-spin" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-1">
+              एक साथ पृष्ठ स्कैन व सहेजे जा रहे हैं...
+            </h3>
+            <p className="text-sm text-slate-400 mb-4">
+              {batchProgress.message || `पृष्ठ ${batchProgress.current} / ${batchProgress.total}`}
+            </p>
+            <div className="w-full max-w-xs bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
+              <div
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full transition-all duration-300 rounded-full"
+                style={{
+                  width: `${Math.round((batchProgress.current / batchProgress.total) * 100)}%`,
+                }}
+              />
+            </div>
+            <span className="text-xs text-blue-400 font-mono mt-2">
+              {Math.round((batchProgress.current / batchProgress.total) * 100)}% पूरा हुआ
+            </span>
+          </div>
+        )}
+
         {/* Top Header */}
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
           <div className="flex items-center gap-2.5">
@@ -780,9 +918,12 @@ export default function ScannerModal({
                         <Upload className="w-7 h-7" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-white text-base">गैलरी से फोटो चुनें</h3>
+                        <h3 className="font-bold text-white text-base flex items-center justify-center gap-1.5">
+                          <span>गैलरी से फोटो चुनें</span>
+                          <span className="text-[10px] bg-blue-500/30 text-blue-300 border border-blue-400/40 px-1.5 py-0.5 rounded font-bold">मल्टी-अपलोड</span>
+                        </h3>
                         <p className="text-xs text-slate-400 mt-1">
-                          गैलरी या फ़ाइल से सहेजे गए नोट्स की फोटो अपलोड करें
+                          गैलरी से एक साथ 1 या 20+ फोटो चुनकर सीधे अपलोड करें
                         </p>
                       </div>
                     </button>
@@ -808,11 +949,12 @@ export default function ScannerModal({
                     className="hidden"
                   />
 
-                  {/* Gallery Input */}
+                  {/* Gallery Input with Multiple Selection Support */}
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleFileChange}
                     className="hidden"
                   />

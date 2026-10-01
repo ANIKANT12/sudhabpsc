@@ -315,6 +315,34 @@ export const syncWithCloud = async (options = {}) => {
 
     const mergedPages = Array.from(pageMap.values());
 
+    // Auto-recover chapters for any pages that exist in pageMap but are missing in chapterMap
+    for (const p of mergedPages) {
+      if (p.chapterId && !chapterMap.has(p.chapterId)) {
+        const targetSubjId = p.subjectId || 'subj-geography';
+        const subjObj = subjectMap.get(targetSubjId);
+        const subjName =
+          targetSubjId === 'subj-geography'
+            ? 'बिहार एवं भारत का भूगोल'
+            : subjObj?.hindiTitle || subjObj?.title || 'हस्तलिखित नोट्स';
+        const recoveredChapter = {
+          id: p.chapterId,
+          subjectId: targetSubjId,
+          chapterNo: Array.from(chapterMap.values()).filter((c) => c.subjectId === targetSubjId).length + 1,
+          title: subjName,
+          hindiTitle: subjName,
+          tags: ['BPSC', 'भूगोल', 'हस्तलिखित नोट्स'],
+          description: `${subjName} के स्कैन किए गए पृष्ठ संग्रह`,
+          createdAt: p.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        chapterMap.set(p.chapterId, recoveredChapter);
+        await saveChapter(recoveredChapter);
+        hasLocalChanges = true;
+      }
+    }
+
+    const finalMergedChapters = Array.from(chapterMap.values());
+
     // Save newly arrived cloud pages to local IndexedDB
     if (hasLocalChanges) {
       await replaceAllPages(mergedPages);
@@ -329,7 +357,7 @@ export const syncWithCloud = async (options = {}) => {
         body: JSON.stringify({
           code,
           subjects: mergedSubjects,
-          chapters: mergedChapters,
+          chapters: finalMergedChapters,
         }),
       });
     } catch (metaErr) {
@@ -375,7 +403,7 @@ export const syncWithCloud = async (options = {}) => {
     return {
       hasChanges: hasLocalChanges || pagesToPushToCloud.length > 0,
       subjects: mergedSubjects,
-      chapters: mergedChapters,
+      chapters: finalMergedChapters,
       pages: mergedPages,
     };
   } catch (err) {
